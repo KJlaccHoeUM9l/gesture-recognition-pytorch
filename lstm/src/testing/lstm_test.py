@@ -21,7 +21,7 @@ import PIL.Image as Image
 
 import sys
 sys.path.insert(0, '../training')
-from training.lstm_arch import *
+from lstm.src.training.lstm_arch import *
 
 parser = argparse.ArgumentParser(description='Testing')
 parser.add_argument('model', help='path to the pretrained model')

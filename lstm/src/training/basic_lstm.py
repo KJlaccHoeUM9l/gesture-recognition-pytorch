@@ -13,8 +13,8 @@ from torchvision import transforms, utils
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-import training.dataset as dataset
-from training.lstm_arch import *
+import lstm.src.training.dataset as dataset
+from lstm.src.training.lstm_arch import *
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith('__'))
@@ -368,7 +368,7 @@ def main(prefix):
     loss_list = []
     acc_list = []
     #for epoch in range(args.start_epoch, args.epochs):
-    numEpoch = 7
+    numEpoch = 2
     avgTime = AverageMeter()
 
     for epoch in range(0, numEpoch):
@@ -393,7 +393,7 @@ def main(prefix):
             'fc_size': args.fc_size,
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
-            'optimizer' : optimizer.state_dict()}, is_best, '../weights_results/', prefix, str(epoch + 1))
+            'optimizer' : optimizer.state_dict()}, is_best, '../../results/weights/', prefix, str(epoch + 1))
 
         loss_list.append(loss1)
         acc_list.append(prec1)
@@ -410,13 +410,13 @@ def main(prefix):
     ax1.plot(np.linspace(1, numEpoch, numEpoch), loss_list, color="red", label="Loss")
     ax1.set_xlabel("Epoch")
     ax1.legend()
-    fig.savefig('../results/' + prefix + '_' + model.modelName + '_' + str(numEpoch) + '_epochs' + '_loss' + '.png')
+    fig.savefig('../../results/images/' + prefix + '_' + model.modelName + '_' + str(numEpoch) + '_epochs' + '_loss' + '.png')
 
     fig, ax2 = plt.subplots()
     ax2.plot(np.linspace(1, numEpoch, numEpoch), acc_list, color="blue", label="Accuracy")
     ax2.set_xlabel("Epoch")
     ax2.legend()
-    fig.savefig('../results/' + prefix + '_' + model.modelName + '_' + str(numEpoch) + '_epochs' + '_accuracy' + '.png')
+    fig.savefig('../../results/images/' + prefix + '_' + model.modelName + '_' + str(numEpoch) + '_epochs' + '_accuracy' + '.png')
 
 
 if __name__ == '__main__':
