@@ -1,10 +1,3 @@
-'''
-	Network Architectures
-
-	Siqin Li
-	April, 2018
-'''
-
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -59,9 +52,7 @@ class FineTuneLstmModel(nn.Module):
 				Variable(torch.zeros(num_layers, batch_size, self.hidden_size)).cuda())
 
 	def forward(self, inputs, hidden=None, steps=0):
-		'''
-		inputs: sequence of images 
-		'''
+		'''	inputs: sequence of images	'''
 		length = len(inputs)
 		fs = Variable(torch.zeros(length, self.rnn.input_size)).cuda()
 		for i in range(length):

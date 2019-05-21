@@ -19,16 +19,14 @@ from lstm.src.training.lstm_arch import *
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith('__'))
 
-parser = argparse.ArgumentParser(description = 'Training')
-parser.add_argument('data', metavar = 'DIR', help = 'path to dataset')
-parser.add_argument('--arch', '-a', metavar = 'ARCH', default = 'alexnet',
-                    choices = model_names, help = 'model architecture: ' + 
+parser = argparse.ArgumentParser(description='Training')
+parser.add_argument('--data', default='root/', type=str)
+parser.add_argument('--arch', '-a', metavar='ARCH', default='alexnet',
+                    choices=model_names, help='model architecture: ' +
                     ' | '.join(model_names) + ' (default: alexnet)')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=90, type=int, metavar='N', 
-                    help='manual epoch number (useful on restarts)')
-parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
+parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=1, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
@@ -38,20 +36,10 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
-parser.add_argument('--print-freq', '-p', default=50, type=int,
-                    metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--resume', default='', type=str, metavar='PATH',
-                    help='path to latest checkpoint (default: none)')
-parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
-                    help='evaluate model on validation set')
+parser.add_argument('--print-freq', '-p', default=50, type=int)
+parser.add_argument('--prefix', default='000000', type=str)
 parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                     help='use pre-trained model')
-parser.add_argument('--world-size', default=1, type=int,
-                    help='number of distributed processes')
-parser.add_argument('--dist-url', default='tcp://224.66.41.62:23456', type=str,
-                    help='url used to set up distributed training')
-parser.add_argument('--dist-backend', default='gloo', type=str,
-                    help='distributed backend')
 parser.add_argument('--lstm_layers', default=1, type=int, metavar='LSTM',
                     help='number of lstm layers')
 parser.add_argument('--hidden_size', default=512, type=int, metavar='HIDDEN',
@@ -67,7 +55,7 @@ best_prec1 = 0
 
 
 
-def train(train_loader, model, criterion, optimizer, epoch):
+def train(train_loader, model, criterion, optimizer, epoch, print_freq):
     #print('train')
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -104,8 +92,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
 
-
-        if i % args.print_freq == 0:
+        if i % print_freq == 0:
             print('\tTrain:\n\tEpoch: [{0}][{1}/{2}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
@@ -118,7 +105,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     return losses.avg
 
 
-def validate(val_loader, model, criterion):
+def validate(val_loader, model, criterion, print_freq):
     #print('validate')
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -167,7 +154,7 @@ def validate(val_loader, model, criterion):
         end = time.time()
         fps.update(float(input.size(1) / batch_time.val), input.size(0))
 
-        if i % args.print_freq == 0:
+        if i % print_freq == 0:
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'fps {fps.val: .3f} ({fps.avg:.3f})\t'
@@ -294,10 +281,8 @@ def accuracy(output, target, topk=(1,)):
     return res
 
 
-
-def main(prefix):
-    global args, best_prec1 
-    args = parser.parse_args()
+def main(args):
+    global best_prec1
 
     # Data Transform and data loading
     traindir = os.path.join(args.data, 'train')
@@ -357,18 +342,11 @@ def main(prefix):
                                     {'params': model.rnn.parameters()}, {'params': model.fc.parameters()}],
                                     lr=args.lr, weight_decay=args.weight_decay)
 
-
-    # Validation on the existing model
-    if args.evaluate:
-        model.load_state_dict(torch.load('model_best_885.pth.tar')['state_dict'])
-        validate(val_loader, model, criterion)
-        return
-
     # Training on epochs
     loss_list = []
     acc_list = []
     #for epoch in range(args.start_epoch, args.epochs):
-    numEpoch = 2
+    numEpoch = args.epochs
     avgTime = AverageMeter()
 
     for epoch in range(0, numEpoch):
@@ -377,10 +355,10 @@ def main(prefix):
         optimizer = adjust_learning_rate(optimizer, epoch)
 
         # train on one epoch
-        loss1 = train(train_loader, model, criterion, optimizer, epoch)
+        loss1 = train(train_loader, model, criterion, optimizer, epoch, args.print_frec)
 
         # evaluate on validation set
-        prec1 = validate(val_loader, model, criterion)
+        prec1 = validate(val_loader, model, criterion, args.print_frec)
 
         # remember best prec@1 and save checkpoint
         is_best = prec1 > best_prec1
@@ -393,7 +371,7 @@ def main(prefix):
             'fc_size': args.fc_size,
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
-            'optimizer' : optimizer.state_dict()}, is_best, '../../results/weights/', prefix, str(epoch + 1))
+            'optimizer' : optimizer.state_dict()}, is_best, '../../results/weights/', args.prefix, str(epoch + 1))
 
         loss_list.append(loss1)
         acc_list.append(prec1)
@@ -404,38 +382,49 @@ def main(prefix):
             avgTime.reset()
 
 
-
     # Saving results of training
+    SavePictures(np.linspace(1, numEpoch, numEpoch), loss_list, 'red', 'Loss',
+                 '../../results/images/' + args.prefix + '_' + model.modelName + '_'
+                 + str(numEpoch) + '_epochs' + '_loss' + '.png')
+    SavePictures(np.linspace(1, numEpoch, numEpoch), acc_list, 'blue', 'Accuracy',
+                 '../../results/images/' + args.prefix + '_' + model.modelName + '_'
+                 + str(numEpoch) + '_epochs' + '_accuracy' + '.png')
+
+
+def getPrefix():
+    f = open('NumberOfStart.txt', 'r');
+    numStart = int(f.read());
+    f.close()
+    f = open('NumberOfStart.txt', 'w');
+    f.write(str(numStart + 1));
+    f.close()
+
+    return str(numStart).zfill(4)
+
+
+def SavePictures(axis_x, axis_y, lineColor, lineLabel, name):
     fig, ax1 = plt.subplots()
-    ax1.plot(np.linspace(1, numEpoch, numEpoch), loss_list, color="red", label="Loss")
+    ax1.plot(axis_x, axis_y, color=lineColor, label=lineLabel)
     ax1.set_xlabel("Epoch")
     ax1.legend()
-    fig.savefig('../../results/images/' + prefix + '_' + model.modelName + '_' + str(numEpoch) + '_epochs' + '_loss' + '.png')
-
-    fig, ax2 = plt.subplots()
-    ax2.plot(np.linspace(1, numEpoch, numEpoch), acc_list, color="blue", label="Accuracy")
-    ax2.set_xlabel("Epoch")
-    ax2.legend()
-    fig.savefig('../../results/images/' + prefix + '_' + model.modelName + '_' + str(numEpoch) + '_epochs' + '_accuracy' + '.png')
+    fig.savefig(name)
 
 
 if __name__ == '__main__':
     print(torch.cuda.get_device_name(0))
 
-    f = open('NumberOfStart.txt', 'r'); numStart = int(f.read()); f.close()
-    f = open('NumberOfStart.txt', 'w'); f.write(str(numStart + 1)); f.close()
-    prefix = str(numStart).zfill(4)
+    args = parser.parse_args()
 
-    main(prefix)
-    #DelFiles('../weights_results/', '0021_checkpoint')
-    # x = torch.randn(3)
-    # print(len(np.array(x.size())))
-    # # print(x)
-    # # print(x.view(-1,1))
-    # #print(torch.t(x))
-    # _, pred = x.topk(2, -1, True, True)
-    # print(pred)
-    # print(pred.view(-1,1))
+    args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
+    args.prefix = getPrefix()
+    args.arch = 'alexnet'
+    args.batch_size = 1
+    args.lr = 0.1
+    args.lr_step = 7
+    args.epochs = 2
+    args.optim = 'sgd'
+    args.print_frec = 10
 
 
-
+    print(args)
+    main(args)
