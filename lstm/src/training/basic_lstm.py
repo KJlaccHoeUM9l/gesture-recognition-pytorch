@@ -64,7 +64,7 @@ def train(train_loader, model, criterion, optimizer, epoch, print_freq):
     model.train()
 
     end = time.time()
-    for i, (input, target, _) in enumerate(train_loader):
+    for i, (input, target) in enumerate(train_loader):
         data_time.update(time.time() - end)
 
         # wrap inputs and targets in Variable
@@ -117,7 +117,7 @@ def validate(val_loader, model, criterion, print_freq):
     model.eval()
 
     end = time.time()
-    for i, (input, target, _) in enumerate(val_loader):
+    for i, (input, target) in enumerate(val_loader):
         data_time.update(time.time() - end)
 
         input_var = torch.autograd.Variable(input)
@@ -256,7 +256,7 @@ def main(args):
     traindir = os.path.join(args.data, 'train')
     valdir = os.path.join(args.data, 'valid')
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                    std=[0.339, 0.224, 0.225])
+                                     std=[0.339, 0.224, 0.225])
 
     transform = (transforms.Compose([
                                     transforms.Resize(224),
@@ -387,19 +387,11 @@ if __name__ == '__main__':
     args.batch_size = 1
     args.lr = 0.1
     args.lr_step = 7
-    args.epochs = 2
+    args.epochs = 7
     args.optim = 'sgd'
     args.print_frec = 10
     print(args)
 
     totalStart = time.time()
-    #main(args)
+    main(args)
     print('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')
-
-
-    flow_frame_x = torch.randn(2, 2)
-    flow_frame_y = flow_frame_x
-    print('frame_x: ' + str(flow_frame_x))
-    print('frame_y: ' + str(flow_frame_y))
-    flow_frame = torch.cat((flow_frame_x, flow_frame_y, torch.zeros(flow_frame_x.size())), dim=0)
-    print('flow_frame: ' + str(flow_frame))

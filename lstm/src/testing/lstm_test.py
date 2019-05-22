@@ -2,6 +2,7 @@ import argparse
 import os
 import cv2
 import PIL.Image as Image
+import numpy as np
 
 from lstm.src.training.lstm_arch import *
 
@@ -85,8 +86,7 @@ def main():
         success, raw_frame = cap.read()
         while(success):
             # Our operations on the frame come here
-            inputImage = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2RGB)
-
+            inputImage = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2RGB) # Потому что Image читает в BGR
             frame = tran(Image.fromarray(inputImage))
             frames.append(frame)
 
@@ -108,7 +108,7 @@ def main():
             cv2.putText(raw_frame, text, bottomLeftCornerOfText,
                         font, fontScale, fontColor, lineType)
             cv2.imshow('frame', raw_frame)
-            cv2.imshow('input', inputImage)
+            cv2.imshow('input', np.array(frame[0]))
 
             success, raw_frame = cap.read()
             if cv2.waitKey(1) & 0xFF == ord('q'):
