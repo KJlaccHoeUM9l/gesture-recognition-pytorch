@@ -54,7 +54,7 @@ parser.add_argument('--fc_size', default=1024, type=int,
 best_prec1 = 0
 
 
-def train(train_loader, model, criterion, optimizer, epoch, print_freq):
+def train(train_loader, model, criterion, optimizer, print_freq):
     #print('train')
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -104,14 +104,12 @@ def train(train_loader, model, criterion, optimizer, epoch, print_freq):
     return losses.avg
 
 
-def validate(val_loader, model, criterion, print_freq):
+def validate(val_loader, model, print_freq):
     #print('validate')
     batch_time = AverageMeter()
     data_time = AverageMeter()
-    losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
-    fps = AverageMeter()
+    correct = 0
+    total = 0
 
     # switch to evaluate mode
     model.eval()
@@ -128,44 +126,22 @@ def validate(val_loader, model, criterion, print_freq):
 
         # compute output
         output, _ = model(input_var[0])
-        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0] - 1)).cuda()
-        output = torch.sum(output * weight.unsqueeze(1), dim=0, keepdim=True)
-        loss = criterion(output, target_var)
+        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0] - 1) * 2).cuda()
+        output = torch.sum(output * weight.unsqueeze(1), dim=0)
+        output = nn.functional.softmax(output, dim=0)
 
-        # measure accuracy and record loss
-        prec1, prec5 = accuracy(output.data[0].cpu(), target, topk=(1, min(model.num_classes, 5)))
-        losses.update(loss.data[0], input.size(0))
-        top1.update(prec1[0], input.size(0))
-        top5.update(prec5[0], input.size(0))
-
-        # measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
-        fps.update(float(input.size(1) / batch_time.val), input.size(0))
+        _, predicted = torch.max(output.data.cpu(), 0)
+        if int(predicted) == int(target[0].data):
+            correct += 1
+        total += 1
 
         if i % print_freq == 0:
             print_log('\tTest: [{0}/{1}]\t'
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'fps {fps.val: .3f} ({fps.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                      'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                        i, len(val_loader), fps=fps, batch_time=batch_time, loss=losses,
-                        top1=top1, top5=top5))
+                      'Accuracy {acc:.3f}'.format(
+                        i, len(val_loader),  batch_time=batch_time, acc=(correct/total)*100))
 
-
-        # Работало
-        # output, _ = model(input_var[0])
-        # _, predicted = torch.max(output.data, 1)
-        # total += len(predicted)
-        # correct += (predicted == int(target[0].data)).sum().item()
-        #######################
-        # target_var = target_var.repeat(output.shape[0])
-        # loss_t = criterion(output, target_var)
-        # weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0] - 1)).cuda()
-        # loss = torch.mean(loss_t * weight)
-
-    return top1.avg
+    return (correct / total) * 100
 
 
 def DelFiles(path, code):
@@ -224,29 +200,6 @@ def adjust_learning_rate(optimizer, epoch):
         for param_group in optimizer.param_groups:
             param_group['lr'] = param_group['lr'] * 0.1
     return optimizer
-
-
-def accuracy(output, target, topk=(1,)):
-    """Computes the precision@k for the specified values of k"""
-    #print('\taccuracy')
-
-    maxk = max(topk)
-    batch_size = target.size(0)
-
-    if len(np.array(output.size())) == 1:
-        _, pred = output.topk(2, -1, True, True)
-        pred = pred.view(-1, 1)
-    else:
-        _, pred = output.topk(maxk, 1, True, True)
-        pred = pred.t()
-
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-    res = []
-    for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
-        res.append(correct_k.mul_(100.0 / batch_size))
-    return res
 
 
 def main(args):
@@ -322,14 +275,14 @@ def main(args):
         optimizer = adjust_learning_rate(optimizer, epoch)
 
         # train on one epoch
-        loss1 = train(train_loader, model, criterion, optimizer, epoch, args.print_frec)
+        loss = train(train_loader, model, criterion, optimizer, args.print_freq)
 
         # evaluate on validation set
-        prec1 = validate(val_loader, model, criterion, args.print_frec)
+        prec = validate(val_loader, model, args.print_freq)
 
         # remember best prec@1 and save checkpoint
-        is_best = prec1 > best_prec1
-        best_prec1 = max(prec1, best_prec1)
+        is_best = prec > best_prec1
+        best_prec1 = max(prec, best_prec1)
         save_checkpoint({
             'epoch': epoch + 1,
             'arch': args.arch,
@@ -340,8 +293,8 @@ def main(args):
             'best_prec1': best_prec1,
             'optimizer' : optimizer.state_dict()}, is_best, '../../results/weights/', args.prefix, str(epoch + 1))
 
-        loss_list.append(loss1)
-        acc_list.append(prec1)
+        loss_list.append(loss)
+        acc_list.append(prec)
         currentTime = time.time() - start
         avgTime.update(currentTime)
         print_log('\tTime left: ' + str(round(avgTime.avg * (numEpoch - epoch - 1) / 60, 1)) + ' minutes')
@@ -397,7 +350,7 @@ if __name__ == '__main__':
     args.lr_step = 7
     args.epochs = 1
     args.optim = 'sgd'
-    args.print_frec = 10
+    args.print_freq = 10
 
     logpath = '../../results/logs/' + args.prefix + '_' + args.arch + '_' + str(args.epochs) + '_epochs_' + args.optim + '.txt'
     print_log(torch.cuda.get_device_name(0))
