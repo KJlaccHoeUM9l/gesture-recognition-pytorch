@@ -12,8 +12,13 @@ parser.add_argument('--frames_dir', default=None, help='video frames to classify
 parser.add_argument('--freq', type=int, default=20, help='classify frequency (length of subsequence)')
 
 num_classes = 9
-classes = ['HoldHover', 'Land', 'LiftOff', 'MoveDownward', 
+classes = ['HoldHover', 'Land', 'LiftOff', 'MoveDownward',
            'MoveForward', 'MoveLeft', 'MoveRight', 'MoveUpward', 'ReleaseSlingLoad']
+
+# UAVGesture
+# num_classes = 13
+# classes = ['All clear', 'Have Command', 'Hover', 'Land', 'Landing Direction', 'Move Ahead', 'Move Downward',
+#            'Move To Left', 'Move To Right', 'Move Upward', 'Not Clear', 'Slow Down', 'Wave Off']
 
 
 def test(input, model):
@@ -123,6 +128,7 @@ def main():
 if __name__ == '__main__':
     args = parser.parse_args()
     args.model = '../../weight/model_best_865.pth.tar'
+    #args.model = '../../weight/0164_checkpoint_7_epoch.pth.tar'
     #args.frames_dir = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/train/Move To Right/video_2/'
     args.freq = 20
 
