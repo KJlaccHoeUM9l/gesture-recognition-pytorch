@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 import time
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -92,14 +93,14 @@ def train(train_loader, model, criterion, optimizer, epoch, print_freq):
         end = time.time()
 
         if i % print_freq == 0:
-            print('\tTrain: [{0}/{1}]\t'
-                'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                'lr {lr:.5f}\t'
-                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                i, len(train_loader), batch_time=batch_time,
-                data_time=data_time, lr=optimizer.param_groups[-1]['lr'],
-                loss=losses))
+            print_log('\tTrain: [{0}/{1}]\t'
+                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                      'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                      'lr {lr:.5f}\t'
+                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
+                      i, len(train_loader), batch_time=batch_time,
+                      data_time=data_time, lr=optimizer.param_groups[-1]['lr'],
+                      loss=losses))
 
     return losses.avg
 
@@ -144,14 +145,14 @@ def validate(val_loader, model, criterion, print_freq):
         fps.update(float(input.size(1) / batch_time.val), input.size(0))
 
         if i % print_freq == 0:
-            print('\tTest: [{0}/{1}]\t'
-                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'fps {fps.val: .3f} ({fps.avg:.3f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                    i, len(val_loader), fps=fps, batch_time=batch_time, loss=losses,
-                    top1=top1, top5=top5))
+            print_log('\tTest: [{0}/{1}]\t'
+                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                      'fps {fps.val: .3f} ({fps.avg:.3f})\t'
+                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                      'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                        i, len(val_loader), fps=fps, batch_time=batch_time, loss=losses,
+                        top1=top1, top5=top5))
 
 
         # Работало
@@ -180,7 +181,7 @@ def DelFiles(path, code):
         if os.path.isfile(path + record):
             os.remove(path + record)
         else:
-            print('Error: file not found')
+            print_log('Error: file not found')
 
 
 def save_checkpoint(state, is_best, path, prefix, epoch):
@@ -283,13 +284,13 @@ def main(args):
         num_workers=args.workers, pin_memory=True)
 
     # load and create model
-    print("==> creating model '{}' ".format(args.arch))
+    print_log("==> creating model '{}' ".format(args.arch))
     if args.pretrained:
-        print("==> using pre-trained model '{}' ".format(args.arch))
+        print_log("==> using pre-trained model '{}' ".format(args.arch))
 
     original_model = models.__dict__[args.arch](pretrained=args.pretrained) 
-    model = FineTuneLstmModel(original_model, args.arch, 
-        len(train_dataset.classes), args.lstm_layers, args.hidden_size, args.fc_size)
+    model = FineTuneLstmModel(original_model, args.arch, len(train_dataset.classes),
+                              args.lstm_layers, args.hidden_size, args.fc_size)
     
     #print(model)
 
@@ -318,7 +319,7 @@ def main(args):
     avgTime = AverageMeter()
     for epoch in range(0, numEpoch):
         start = time.time()
-        print('Epoch #' + (epoch + 1).__str__())
+        print_log('Epoch #' + (epoch + 1).__str__())
         optimizer = adjust_learning_rate(optimizer, epoch)
 
         # train on one epoch
@@ -344,7 +345,7 @@ def main(args):
         acc_list.append(prec1)
         currentTime = time.time() - start
         avgTime.update(currentTime)
-        print('\tTime left: ' + str(round(avgTime.avg * (numEpoch - epoch - 1) / 60, 1)) + ' minutes')
+        print_log('\tTime left: ' + str(round(avgTime.avg * (numEpoch - epoch - 1) / 60, 1)) + ' minutes')
         if epoch == 0:
             avgTime.reset()
 
@@ -377,9 +378,17 @@ def SavePictures(axis_x, axis_y, lineColor, lineLabel, name):
     fig.savefig(name)
 
 
-if __name__ == '__main__':
-    print(torch.cuda.get_device_name(0))
+logfile = None
+logpath = 'log.txt'
+def print_log(*args):
+    global logfile
+    print(*args)
+    if logfile is None:
+        logfile = open(logpath, 'a')
+    print(*args, file=logfile)
 
+
+if __name__ == '__main__':
     args = parser.parse_args()
     args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
     args.prefix = getPrefix()
@@ -387,11 +396,14 @@ if __name__ == '__main__':
     args.batch_size = 1
     args.lr = 0.1
     args.lr_step = 7
-    args.epochs = 7
+    args.epochs = 1
     args.optim = 'sgd'
     args.print_frec = 10
-    print(args)
+
+    logpath = '../../results/logs/' + args.prefix + '_' + args.arch + '_' + str(args.epochs) + '_epochs_' + args.optim + '.txt'
+    print_log(torch.cuda.get_device_name(0))
+    print_log(args)
 
     totalStart = time.time()
     main(args)
-    print('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')
+    print_log('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')
