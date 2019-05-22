@@ -54,7 +54,6 @@ parser.add_argument('--fc_size', default=1024, type=int,
 best_prec1 = 0
 
 
-
 def train(train_loader, model, criterion, optimizer, epoch, print_freq):
     #print('train')
     batch_time = AverageMeter()
@@ -93,12 +92,12 @@ def train(train_loader, model, criterion, optimizer, epoch, print_freq):
         end = time.time()
 
         if i % print_freq == 0:
-            print('\tTrain:\n\tEpoch: [{0}][{1}/{2}]\t'
+            print('\tTrain: [{0}/{1}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                 'lr {lr:.5f}\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                epoch, i, len(train_loader), batch_time=batch_time,
+                i, len(train_loader), batch_time=batch_time,
                 data_time=data_time, lr=optimizer.param_groups[-1]['lr'],
                 loss=losses))
 
@@ -113,9 +112,6 @@ def validate(val_loader, model, criterion, print_freq):
     top1 = AverageMeter()
     top5 = AverageMeter()
     fps = AverageMeter()
-    maxLosses = 0
-    correct = 0
-    total = 0
 
     # switch to evaluate mode
     model.eval()
@@ -123,8 +119,6 @@ def validate(val_loader, model, criterion, print_freq):
     end = time.time()
     for i, (input, target, _) in enumerate(val_loader):
         data_time.update(time.time() - end)
-        #print('target: ' + str(int(target[0].data)))
-        label = int(target[0].data)
 
         input_var = torch.autograd.Variable(input)
         target_var = torch.autograd.Variable(target)
@@ -134,13 +128,8 @@ def validate(val_loader, model, criterion, print_freq):
 
         # compute output
         output, _ = model(input_var[0])
-        # _, predicted = torch.max(output.data, 1)
-        # total += len(predicted)
-        # correct += (predicted == label).sum().item()
-
         weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0] - 1)).cuda()
         output = torch.sum(output * weight.unsqueeze(1), dim=0, keepdim=True)
-        #print('output: ' + str(output.data[0]))
         loss = criterion(output, target_var)
 
         # measure accuracy and record loss
@@ -155,7 +144,7 @@ def validate(val_loader, model, criterion, print_freq):
         fps.update(float(input.size(1) / batch_time.val), input.size(0))
 
         if i % print_freq == 0:
-            print('Test: [{0}/{1}]\t'
+            print('\tTest: [{0}/{1}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'fps {fps.val: .3f} ({fps.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
@@ -166,38 +155,17 @@ def validate(val_loader, model, criterion, print_freq):
 
 
         # Работало
+        # output, _ = model(input_var[0])
+        # _, predicted = torch.max(output.data, 1)
+        # total += len(predicted)
+        # correct += (predicted == int(target[0].data)).sum().item()
+        #######################
         # target_var = target_var.repeat(output.shape[0])
         # loss_t = criterion(output, target_var)
         # weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0] - 1)).cuda()
         # loss = torch.mean(loss_t * weight)
-        #
 
-        # measure accuracy and record loss
-        # target_var = target_var.repeat(output.shape[0])
-        # loss = criterion(output, target_var)
-        # prec1, prec5 = accuracy(output.data.cpu(), target, topk=(1, min(model.num_classes, 5)))
-        # print('prec1: ' + str(prec1[0]))
-        # #losses.update(loss.data[0], input.size(0))
-        # losses.update(loss.data[0], input.size(0))
-        # top1.update(prec1[0], input.size(0))
-        # top5.update(prec5[0], input.size(0))
-        #
-        # # measure elapsed time
-        # batch_time.update(time.time() - end)
-        # end = time.time()
-        # fps.update(float(input.size(1)/batch_time.val), input.size(0))
-
-        # if i % args.print_freq == 0:
-        #     print ('\tTest: [{0}/{1}]\t'
-        #             'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-        #             'fps {fps.val: .3f} ({fps.avg:.3f})\t'
-        #             'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-        #             i, len(val_loader), fps=fps, batch_time=batch_time, loss=losses))
-    #res = float(correct) / total
-    #print('Test: \taccuracy = ' + str(res))
-    print('\tTest: \taccuracy = ' + str(float(top1.avg)))
-
-    return top1.avg#1-losses.avg#top1.avg
+    return top1.avg
 
 
 def DelFiles(path, code):
@@ -345,10 +313,9 @@ def main(args):
     # Training on epochs
     loss_list = []
     acc_list = []
-    #for epoch in range(args.start_epoch, args.epochs):
     numEpoch = args.epochs
-    avgTime = AverageMeter()
 
+    avgTime = AverageMeter()
     for epoch in range(0, numEpoch):
         start = time.time()
         print('Epoch #' + (epoch + 1).__str__())
@@ -414,7 +381,6 @@ if __name__ == '__main__':
     print(torch.cuda.get_device_name(0))
 
     args = parser.parse_args()
-
     args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
     args.prefix = getPrefix()
     args.arch = 'alexnet'
@@ -424,7 +390,8 @@ if __name__ == '__main__':
     args.epochs = 2
     args.optim = 'sgd'
     args.print_frec = 10
-
-
     print(args)
+
+    totalStart = time.time()
     main(args)
+    print('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')

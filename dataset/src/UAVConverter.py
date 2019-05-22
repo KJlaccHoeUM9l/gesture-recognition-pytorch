@@ -3,7 +3,7 @@ import os
 import time
 import random
 
-import src.BodyDetection as bd
+import dataset.src.BodyDetection as bd
 
 
 def extractImages(video_path, save_path):
