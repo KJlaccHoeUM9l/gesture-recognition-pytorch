@@ -393,5 +393,13 @@ if __name__ == '__main__':
     print(args)
 
     totalStart = time.time()
-    main(args)
+    #main(args)
     print('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')
+
+
+    flow_frame_x = torch.randn(2, 2)
+    flow_frame_y = flow_frame_x
+    print('frame_x: ' + str(flow_frame_x))
+    print('frame_y: ' + str(flow_frame_y))
+    flow_frame = torch.cat((flow_frame_x, flow_frame_y, torch.zeros(flow_frame_x.size())), dim=0)
+    print('flow_frame: ' + str(flow_frame))

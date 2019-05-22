@@ -1,10 +1,3 @@
-'''
-    The online testing code of finetune CNN+LSTM network.
-
-    Siqin Li    
-    April, 2018
-'''
-
 import argparse
 import os
 import shutil
@@ -62,7 +55,10 @@ def cal_flow(frames, transform=None):
         flow = flow_map(flow)
         x_flow = transform(Image.fromarray(np.uint8(flow[:, :, 0])))
         y_flow = transform(Image.fromarray(np.uint8(flow[:, :, 1])))
+        cv2.imshow('x', x_flow)
+        cv2.imshow('y', y_flow)
         flow = torch.cat((x_flow, y_flow, torch.zeros(x_flow.size())), dim=0)
+        cv2.imshow('flow', flow)
         flow_frames.append(flow)
         prvs = nxt
 

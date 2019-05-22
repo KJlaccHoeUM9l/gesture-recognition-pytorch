@@ -1,11 +1,3 @@
-'''
-	Data loader
-
-	Siqin Li
-	April, 2018
-'''
-
-
 import os
 import torch
 import numpy as np
@@ -60,7 +52,6 @@ class CLMarshallingDataset(Dataset):
 
 	def __len__(self):
 		#print('\t\tCLMarshallingDataset.__len__()')
-		#l = np.sum(np.array([len(os.listdir(self.root_dir + '/' + c)) for c in self.classes]))
 		return np.sum(np.array([len(os.listdir(self.root_dir + '/' + c)) for c in self.classes]))
 
 	def __getitem__(self, idx):
@@ -107,7 +98,10 @@ class CLMarshallingDataset(Dataset):
 				if self.transform is not None:
 					flow_frame_x = self.transform[1](flow_frame_x)
 					flow_frame_y = self.transform[1](flow_frame_y)
+				print('frame_x: ' + str(flow_frame_x))
+				print('frame_y: ' + str(flow_frame_y))
 				flow_frame = torch.cat((flow_frame_x, flow_frame_y, torch.zeros(flow_frame_x.size())), dim=0)
+				print('flow_frame: ' + str(flow_frame))
 				flow_frames.append(flow_frame)
 
 		frames = torch.stack(frames)
