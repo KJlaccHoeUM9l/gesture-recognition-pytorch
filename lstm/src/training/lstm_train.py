@@ -2,7 +2,6 @@ import argparse
 import os
 import shutil
 import time
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +13,7 @@ from torchvision import transforms, utils
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-import lstm.src.training.dataset as dataset
+import lstm.src.training.lstm_dataset as dataset
 from lstm.src.training.lstm_arch import *
 
 model_names = sorted(name for name in models.__dict__
@@ -272,8 +271,8 @@ def main(args):
                                     )
                 )
 
-    train_dataset = dataset.CLMarshallingDataset(traindir, transform)
-    valid_dataset = dataset.CLMarshallingDataset(valdir, transform)
+    train_dataset = dataset.UAVGestureDataset(traindir, transform)
+    valid_dataset = dataset.UAVGestureDataset(valdir, transform)
 
     train_loader = torch.utils.data.DataLoader(train_dataset, 
         batch_size=args.batch_size, shuffle=True,

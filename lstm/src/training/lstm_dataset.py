@@ -6,7 +6,7 @@ import PIL.Image as Image
 from torch.utils.data import Dataset
 
 
-class CLMarshallingDataset(Dataset):
+class UAVGestureDataset(Dataset):
 	def __init__(self, root_dir, transform=None):
 		'''
 		structure of root_dir: 'root_dir/class_i/video_i/img_i.jpg'
