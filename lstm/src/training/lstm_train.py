@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torchvision.models as models
-from torchvision import transforms, utils
+from torchvision import transforms
 from torch.autograd import Variable
 import torch.nn.functional as F
 
@@ -339,26 +339,6 @@ def print_log(*args):
     print(*args, file=logfile)
 
 
-def SingleTrain():
-    global logpath
-    args.prefix = getPrefix()
-    #args.arch = 'alexnet'
-    args.arch = 'resnet18'
-    #args.arch = 'resnet50'
-    args.batch_size = 1
-    args.lr = 0.1
-    args.lr_step = 7
-    args.epochs = 2
-    args.optim = 'sgd'
-    args.print_freq = 10
-
-    logpath = '../../results/logs/' + args.prefix + '_' + args.arch + '_' +\
-              str(args.epochs) + '_epochs_' + args.optim + '.txt'
-    print_log('Device: ' + str(device))
-    print_log(args)
-    main(args)
-
-
 def MultipleTrain():
     global logpath
     global logfile
@@ -397,6 +377,25 @@ def MultipleTrain():
         logfile = None
 
 
+def SingleTrain():
+    global logpath
+    args.prefix = getPrefix()
+    #args.arch = 'alexnet'
+    args.arch = 'resnet18'
+    #args.arch = 'resnet50'
+    args.batch_size = 1
+    args.lr = 0.1
+    args.lr_step = 7
+    args.epochs = 2
+    args.optim = 'sgd'
+    args.print_freq = 10
+
+    logpath = '../../results/logs/' + args.prefix + '_' + args.arch + '_' +\
+              str(args.epochs) + '_epochs_' + args.optim + '.txt'
+    print_log('Device: ' + str(device))
+    print_log(args)
+    main(args)
+
 
 if __name__ == '__main__':
     #print(torch.cuda.get_device_name(0))
@@ -405,7 +404,7 @@ if __name__ == '__main__':
     args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
 
     totalStart = time.time()
-    #SingleTrain()
-    MultipleTrain()
+    SingleTrain()
+    #MultipleTrain()
     print_log('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')
 
