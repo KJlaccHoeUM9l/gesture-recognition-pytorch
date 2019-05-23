@@ -339,14 +339,11 @@ def print_log(*args):
     print(*args, file=logfile)
 
 
-if __name__ == '__main__':
-    #print(torch.cuda.get_device_name(0))
-
-    args = parser.parse_args()
-    args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
+def SingleTrain():
+    global logpath
     args.prefix = getPrefix()
     #args.arch = 'alexnet'
-    #args.arch = 'resnet18'
+    args.arch = 'resnet18'
     #args.arch = 'resnet50'
     args.batch_size = 1
     args.lr = 0.1
@@ -355,10 +352,60 @@ if __name__ == '__main__':
     args.optim = 'sgd'
     args.print_freq = 10
 
-    logpath = '../../results/logs/' + args.prefix + '_' + args.arch + '_' + str(args.epochs) + '_epochs_' + args.optim + '.txt'
+    logpath = '../../results/logs/' + args.prefix + '_' + args.arch + '_' +\
+              str(args.epochs) + '_epochs_' + args.optim + '.txt'
     print_log('Device: ' + str(device))
     print_log(args)
+    main(args)
+
+
+def MultipleTrain():
+    global logpath
+    global logfile
+
+    models = ['alexnet', 'resnet18', 'resnet50']
+    currentModel = 0
+    for model in models:
+        currentModel += 1
+        prefix = getPrefix()
+        args.prefix = prefix
+        args.arch = model
+        args.batch_size = 1
+        args.lr = 0.1
+        args.lr_step = 7
+        args.epochs = 1
+        args.optim = 'sgd'
+        args.print_freq = 10
+
+        logpath = '../../results/logs/' + prefix + '_' + args.arch + '_' + \
+                  str(args.epochs) + '_epochs_' + args.optim + '.txt'
+        print_log('*****************' + model + '*****************')
+        print_log('Device: ' + str(device))
+        print_log(args)
+
+        modelTime = AverageMeter()
+        modelStart = time.time()
+
+        main(args)
+
+        currentTime = time.time() - modelStart
+        modelTime.update(currentTime)
+        print_log('Current model time: ' + str(round(currentTime / 60, 1)) + ' minutes')
+        print_log('For all models time left: ' +
+                  str(round(modelTime.avg * (len(models) - currentModel) / 60, 1)) + ' minutes')
+        print_log('******************************************')
+        logfile = None
+
+
+
+if __name__ == '__main__':
+    #print(torch.cuda.get_device_name(0))
+
+    args = parser.parse_args()
+    args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
 
     totalStart = time.time()
-    main(args)
+    #SingleTrain()
+    MultipleTrain()
     print_log('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')
+
