@@ -68,10 +68,19 @@ def train(train_loader, model, criterion, optimizer, print_freq):
         output, _ = model(input_var[0])
         target_var = target_var.repeat(output.shape[0])
         loss_t = criterion(output, target_var)
-        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0] - 1)).cuda()
+        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0])).cuda()
 
         loss = torch.mean(loss_t * weight)  # Среднее между ошибкой на каждом кадре и его весом
         losses.update(loss.data, input.size(0))
+
+        # output, _ = model(input_var[0])
+        # weight = Variable(torch.Tensor(range(output.shape[0])) /
+        #                   (output.shape[0])).cuda().view(-1, 1).repeat(1, output.shape[1])
+        # output = torch.mul(output, weight)
+        # output = torch.mean(output, dim=0).unsqueeze(0)  # Среднее между ошибкой на каждом кадре и его весом
+        #
+        # loss = criterion(output, target_var)
+        # losses.update(loss.item(), input.size(0))
 
         # Backprop and perform optimisation
         optimizer.zero_grad()
@@ -116,7 +125,7 @@ def validate(val_loader, model, print_freq):
 
         # compute output
         output, _ = model(input_var[0])
-        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0] - 1) * 2).cuda()
+        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0])).cuda()
         output = torch.sum(output * weight.unsqueeze(1), dim=0)
         output = nn.functional.softmax(output, dim=0)
 
