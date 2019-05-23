@@ -43,8 +43,8 @@ def main():
 
     # Load model
     original_model = models.__dict__[model_info['arch']](pretrained=False)
-    model = FineTuneLstmModel(original_model, model_info['arch'],
-            num_classes, model_info['lstm_layers'], model_info['hidden_size'], model_info['fc_size'])
+    model = CNN_LSTM_Model(original_model, model_info['arch'],
+                           num_classes, model_info['lstm_layers'], model_info['hidden_size'], model_info['fc_size'])
     model.cuda()
     model.load_state_dict(model_info['state_dict'])
 

@@ -16,40 +16,30 @@ import torch.nn.functional as F
 import lstm.src.training.lstm_dataset as dataset
 from lstm.src.training.lstm_arch import *
 
-model_names = sorted(name for name in models.__dict__
-    if name.islower() and not name.startswith('__'))
 
 parser = argparse.ArgumentParser(description='Training')
+# data parameters
 parser.add_argument('--data', default='root/', type=str)
-parser.add_argument('--arch', '-a', metavar='ARCH', default='alexnet',
-                    choices=model_names, help='model architecture: ' +
-                    ' | '.join(model_names) + ' (default: alexnet)')
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
-                    help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=90, type=int, metavar='N',
-                    help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=1, type=int,
-                    metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
-                    metavar='LR', help='initial learning rate')
-parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
-                    help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
-                    metavar='W', help='weight decay (default: 1e-4)')
+
+# model parameters
+parser.add_argument('--arch', metavar='ARCH', default='alexnet', help='model architecture' + ' (default: alexnet)')
+parser.add_argument('--lstm_layers', default=1, type=int, metavar='LSTM', help='number of lstm layers')
+parser.add_argument('--hidden_size', default=512, type=int, metavar='HIDDEN', help='output size of LSTM hidden layers')
+parser.add_argument('--fc_size', default=1024, type=int, help='size of fully connected layer before LSTM')
+
+# train parameters
+parser.add_argument('--epochs', default=90, type=int, metavar='N', help='manual epoch number (useful on restarts)')
+parser.add_argument('-b', '--batch-size', default=1, type=int, metavar='N', help='mini-batch size (default: 256)')
+parser.add_argument('--lr', '--learning-rate', default=0.1, type=float, metavar='LR', help='initial learning rate')
+parser.add_argument('--momentum', default=0.9, type=float, metavar='M', help='momentum')
+parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', help='weight decay(default: 1e-4)')
+parser.add_argument('--lr_step', default=10, type=float, help='learning rate decay frequency')
+parser.add_argument('--optim', '--optimizer', default='sgd',type=str, help='optimizer: sgd | adam')
+
+# other parameters
+parser.add_argument('-j', '--workers', default=4, type=int, metavar='N', help='number of data loading workers')
 parser.add_argument('--print-freq', '-p', default=50, type=int)
 parser.add_argument('--prefix', default='000000', type=str)
-parser.add_argument('--pretrained', dest='pretrained', action='store_true',
-                    help='use pre-trained model')
-parser.add_argument('--lstm_layers', default=1, type=int, metavar='LSTM',
-                    help='number of lstm layers')
-parser.add_argument('--hidden_size', default=512, type=int, metavar='HIDDEN',
-                    help='output size of LSTM hidden layers')
-parser.add_argument('--lr_step', default=10, type=float,
-                    help='learning rate decay frequency')
-parser.add_argument('--optim', '--optimizer', default='sgd',type=str,
-                    help='optimizer: sgd | adam')
-parser.add_argument('--fc_size', default=1024, type=int,
-                    help='size of fully connected layer before LSTM')
 
 best_prec1 = 0
 
@@ -237,15 +227,9 @@ def main(args):
 
     # load and create model
     print_log("==> creating model '{}' ".format(args.arch))
-    if args.pretrained:
-        print_log("==> using pre-trained model '{}' ".format(args.arch))
-
-    original_model = models.__dict__[args.arch](pretrained=args.pretrained) 
-    model = FineTuneLstmModel(original_model, args.arch, len(train_dataset.classes),
-                              args.lstm_layers, args.hidden_size, args.fc_size)
-    
-    #print(model)
-
+    original_model = models.__dict__[args.arch](pretrained=False)#True)
+    model = CNN_LSTM_Model(original_model, args.arch, len(train_dataset.classes),
+                           args.lstm_layers, args.hidden_size, args.fc_size)
     model.cuda()
 
     # loss criterion and optimizer
@@ -254,7 +238,7 @@ def main(args):
 
     if args.optim == 'sgd':
         optimizer = torch.optim.SGD([{'params': model.features.parameters(), 'lr': 0.1 * args.lr}, 
-                                    {'params': model.fc_pre.parameters()}, 
+                                    {'params': model.fc_pre.parameters()},
                                     {'params': model.rnn.parameters()}, {'params': model.fc.parameters()}],
                                     lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
     elif args.optim == 'adam':
@@ -301,6 +285,10 @@ def main(args):
         if epoch == 0:
             avgTime.reset()
 
+    print_log('Min loss: ' + str(float(min(loss_list))))
+    print_log('Max loss: ' + str(float(max(loss_list))))
+    print_log('Min accuracy: : ' + str(min(acc_list)))
+    print_log('Max accuracy: : ' + str(max(acc_list)))
 
     # Saving results of training
     SavePictures(np.linspace(1, numEpoch, numEpoch), loss_list, 'red', 'Loss',
@@ -344,7 +332,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
     args.prefix = getPrefix()
-    args.arch = 'alexnet'
+    #args.arch = 'alexnet'
+    #args.arch = 'resnet18'
+    #args.arch = 'resnet50'
     args.batch_size = 1
     args.lr = 0.1
     args.lr_step = 7
