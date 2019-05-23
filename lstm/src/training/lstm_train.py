@@ -17,6 +17,8 @@ import lstm.src.training.lstm_dataset as dataset
 from lstm.src.training.lstm_arch import *
 
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 parser = argparse.ArgumentParser(description='Training')
 # data parameters
 parser.add_argument('--data', default='root/', type=str)
@@ -62,13 +64,13 @@ def train(train_loader, model, criterion, optimizer, print_freq):
         target_var = torch.autograd.Variable(target)
 
         # CUDA
-        input_var, target_var = input_var.cuda(), target_var.cuda()
+        input_var, target_var = input_var.to(device), target_var.to(device)
 
         # Run forward
         output, _ = model(input_var[0])
         target_var = target_var.repeat(output.shape[0])
         loss_t = criterion(output, target_var)
-        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0])).cuda()
+        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0])).to(device)
 
         loss = torch.mean(loss_t * weight)  # Среднее между ошибкой на каждом кадре и его весом
         losses.update(loss.data, input.size(0))
@@ -121,11 +123,11 @@ def validate(val_loader, model, print_freq):
         target_var = torch.autograd.Variable(target)
 
         # CUDA
-        input_var, target_var = input_var.cuda(), target_var.cuda()
+        input_var, target_var = input_var.to(device), target_var.to(device)
 
         # compute output
         output, _ = model(input_var[0])
-        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0])).cuda()
+        weight = Variable(torch.Tensor(range(output.shape[0])) / (output.shape[0])).to(device)
         output = torch.sum(output * weight.unsqueeze(1), dim=0)
         output = nn.functional.softmax(output, dim=0)
 
@@ -239,11 +241,11 @@ def main(args):
     original_model = models.__dict__[args.arch](pretrained=False)#True)
     model = CNN_LSTM_Model(original_model, args.arch, len(train_dataset.classes),
                            args.lstm_layers, args.hidden_size, args.fc_size)
-    model.cuda()
+    model.to(device)
 
     # loss criterion and optimizer
     criterion = nn.CrossEntropyLoss(reduce=False)
-    criterion = criterion.cuda()
+    criterion = criterion.to(device)
 
     if args.optim == 'sgd':
         optimizer = torch.optim.SGD([{'params': model.features.parameters(), 'lr': 0.1 * args.lr}, 
@@ -338,6 +340,8 @@ def print_log(*args):
 
 
 if __name__ == '__main__':
+    #print(torch.cuda.get_device_name(0))
+
     args = parser.parse_args()
     args.data = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-part/'
     args.prefix = getPrefix()
@@ -347,12 +351,12 @@ if __name__ == '__main__':
     args.batch_size = 1
     args.lr = 0.1
     args.lr_step = 7
-    args.epochs = 1
+    args.epochs = 2
     args.optim = 'sgd'
     args.print_freq = 10
 
     logpath = '../../results/logs/' + args.prefix + '_' + args.arch + '_' + str(args.epochs) + '_epochs_' + args.optim + '.txt'
-    print_log(torch.cuda.get_device_name(0))
+    print_log('Device: ' + str(device))
     print_log(args)
 
     totalStart = time.time()
