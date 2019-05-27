@@ -5,18 +5,18 @@ from torch import nn
 from torch import optim
 from torch.optim import lr_scheduler
 
-from opts import parse_opts
-from model import generate_model
-from mean import get_mean, get_std
-from spatial_transforms import (
+from net3d.src.opts import parse_opts
+from net3d.src.model import generate_model
+from net3d.src.mean import get_mean, get_std
+from net3d.src.spatial_transforms import (
      Compose, Normalize, Scale, CenterCrop, MultiScaleCornerCrop,
      RandomHorizontalFlip, ToTensor)
-from temporal_transforms import LoopPadding, TemporalRandomCrop
-from target_transforms import ClassLabel
-from dataset import get_training_set, get_validation_set
-from utils import Logger
-from train import train_epoch
-from validation import val_epoch
+from net3d.src.temporal_transforms import LoopPadding, TemporalRandomCrop
+from net3d.src.target_transforms import ClassLabel
+from net3d.src.dataset import get_training_set, get_validation_set
+from net3d.src.utils import Logger
+from net3d.src.train import train_epoch
+from net3d.src.validation import val_epoch
 
 if __name__ == '__main__':
     opt = parse_opts()
