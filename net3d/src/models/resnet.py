@@ -5,10 +5,7 @@ from torch.autograd import Variable
 import math
 from functools import partial
 
-__all__ = [
-    'ResNet', 'resnet10', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
-    'resnet152', 'resnet200'
-]
+__all__ = ['ResNet', 'resnet10', 'resnet18', 'resnet34', 'resnet50']
 
 
 def conv3x3x3(in_planes, out_planes, stride=1):
@@ -24,9 +21,7 @@ def conv3x3x3(in_planes, out_planes, stride=1):
 
 def downsample_basic_block(x, planes, stride):
     out = F.avg_pool3d(x, kernel_size=1, stride=stride)
-    zero_pads = torch.Tensor(
-        out.size(0), planes - out.size(1), out.size(2), out.size(3),
-        out.size(4)).zero_()
+    zero_pads = torch.Tensor(out.size(0), planes - out.size(1), out.size(2), out.size(3), out.size(4)).zero_()
     if isinstance(out.data, torch.cuda.FloatTensor):
         zero_pads = zero_pads.cuda()
 
@@ -191,27 +186,6 @@ class ResNet(nn.Module):
         return x
 
 
-def get_fine_tuning_parameters(model, ft_begin_index):
-    if ft_begin_index == 0:
-        return model.parameters()
-
-    ft_module_names = []
-    for i in range(ft_begin_index, 5):
-        ft_module_names.append('layer{}'.format(i))
-    ft_module_names.append('fc')
-
-    parameters = []
-    for k, v in model.named_parameters():
-        for ft_module in ft_module_names:
-            if ft_module in k:
-                parameters.append({'params': v})
-                break
-        else:
-            parameters.append({'params': v, 'lr': 0.0})
-
-    return parameters
-
-
 def resnet10(**kwargs):
     """Constructs a ResNet-18 model.
     """
@@ -237,25 +211,4 @@ def resnet50(**kwargs):
     """Constructs a ResNet-50 model.
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
-    return model
-
-
-def resnet101(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
-    return model
-
-
-def resnet152(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
-    return model
-
-
-def resnet200(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNet(Bottleneck, [3, 24, 36, 3], **kwargs)
     return model

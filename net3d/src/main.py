@@ -1,4 +1,6 @@
 import os
+import time
+import numpy as np
 import json
 import torch
 from torch import nn
@@ -17,16 +19,24 @@ from net3d.src.dataset import get_training_set, get_validation_set
 from net3d.src.utils import Logger
 from net3d.src.train import train_epoch
 from net3d.src.validation import val_epoch
+from net3d.src.utils import save_pictures, get_prefix, AverageMeter
 
-if __name__ == '__main__':
+
+def main():
     opt = parse_opts()
     if opt.root_path != '':
         opt.video_path = os.path.join(opt.root_path, opt.video_path)
         opt.annotation_path = os.path.join(opt.root_path, opt.annotation_path)
+
         opt.result_path = os.path.join(opt.root_path, opt.result_path)
+        dir_name = os.path.join(opt.result_path,
+                                get_prefix() + '_{}{}_{}_epochs'.format(opt.model, opt.model_depth, opt.n_epochs))
+        os.mkdir(dir_name)
+        opt.result_path = os.path.join(opt.result_path, dir_name)
+
 
     opt.scales = [opt.initial_scale]
-    for i in range(1, opt.n_scales):
+    for epoch in range(1, opt.n_scales):
         opt.scales.append(opt.scales[-1] * opt.scale_step)
     opt.arch = '{}-{}'.format(opt.model, opt.model_depth)
 
@@ -57,7 +67,7 @@ if __name__ == '__main__':
         crop_method = MultiScaleCornerCrop(opt.scales, opt.sample_size)
     elif opt.train_crop == 'center':
         crop_method = MultiScaleCornerCrop(
-            opt.scales, opt.sample_size, crop_positions=['c'])
+                opt.scales, opt.sample_size, crop_positions=['c'])
 
     # Пространственное преобразование
     spatial_transform = Compose([crop_method,
@@ -102,9 +112,36 @@ if __name__ == '__main__':
     val_logger = Logger(os.path.join(opt.result_path, 'val.log'), ['epoch', 'loss', 'acc'])
 
     # **************************************** TRAINING ****************************************
-    print('run')
-    for i in range(opt.begin_epoch, opt.n_epochs + 1):
-        train_epoch(i, train_loader, model, criterion, optimizer, opt,
-                        train_logger, train_batch_logger)
-        validation_loss = val_epoch(i, val_loader, model, criterion, opt,
-                                        val_logger)
+    epoch_avg_time = AverageMeter()
+    train_loss_list = []
+    train_acc_list = []
+    valid_acc_list = []
+    for epoch in range(opt.begin_epoch, opt.n_epochs + 1):
+        epoch_start_time = time.time()
+        print('Epoch #' + str(epoch))
+
+        train_loss, train_acc = train_epoch(epoch, train_loader, model, criterion, optimizer, opt,
+                                            train_logger, train_batch_logger)
+        validation_acc = val_epoch(epoch, val_loader, model, criterion, opt,
+                                   val_logger)
+        train_loss_list.append(train_loss)
+        train_acc_list.append(train_acc)
+        valid_acc_list.append(validation_acc)
+
+        epoch_end_time = time.time() - epoch_start_time
+        epoch_avg_time.update(epoch_end_time)
+        print('\tTime left: ' + str(round(epoch_avg_time.avg * (opt.n_epochs - epoch) / 60, 1)) + ' minutes')
+
+    # ******************************* SAVING RESULTS OF TRAINING ******************************
+    save_pictures(np.linspace(1, opt.n_epochs, opt.n_epochs), train_loss_list, 'red', 'Loss',
+                  os.path.join(opt.result_path, 'train_loss.png'))
+    save_pictures(np.linspace(1, opt.n_epochs, opt.n_epochs), train_acc_list, 'blue', 'Accuracy',
+                  os.path.join(opt.result_path, 'train_accuracy.png'))
+    save_pictures(np.linspace(1, opt.n_epochs, opt.n_epochs), valid_acc_list, 'blue', 'Accuracy',
+                  os.path.join(opt.result_path, 'validation_accuracy.png'))
+
+
+if __name__ == '__main__':
+    total_start = time.time()
+    main()
+    print('Total time: ' + str(round((time.time() - total_start) / 60)) + ' minutes')

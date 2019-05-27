@@ -108,7 +108,7 @@ def parse_opts():
         '--batch_size', default=8, type=int, help='Batch Size')
     parser.add_argument(
         '--n_epochs',
-        default=10,
+        default=2,
         type=int,
         help='Number of total epochs to run')
     parser.add_argument(
@@ -156,7 +156,7 @@ def parse_opts():
         '--model_depth',
         default=18,
         type=int,
-        help='Depth of resnet (10 | 18 | 34 | 50 | 101)')
+        help='Depth of resnet (10 | 18 | 34 | 50)')
     parser.add_argument(
         '--resnet_shortcut',
         default='B',

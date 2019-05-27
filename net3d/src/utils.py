@@ -1,5 +1,5 @@
 import csv
-
+import matplotlib.pyplot as plt
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -58,3 +58,22 @@ def calculate_accuracy(outputs, targets):
     n_correct_elems = correct.float().sum().item()
 
     return n_correct_elems / batch_size
+
+
+def save_pictures(axis_x, axis_y, line_color, line_label, name):
+    fig, ax = plt.subplots()
+    ax.plot(axis_x, axis_y, color=line_color, label=line_label)
+    ax.set_xlabel("Epoch")
+    ax.legend()
+    fig.savefig(name)
+
+
+def get_prefix():
+    f = open('prefix.txt', 'r')
+    num_start = int(f.read())
+    f.close()
+    f = open('prefix.txt', 'w')
+    f.write(str(num_start + 1))
+    f.close()
+
+    return str(num_start).zfill(4)
