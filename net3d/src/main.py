@@ -151,7 +151,7 @@ def main():
     valid_acc_list = []
     current_train_data = 0
     current_valid_data = 0
-    opt.frequence_cross_validation = round(opt.n_epochs / 3 - 0.5)
+    opt.frequence_cross_validation = round(opt.n_epochs / 3 + 0.5)
     for epoch in range(opt.begin_epoch, opt.n_epochs + 1):
         epoch_start_time = time.time()
         print('Epoch #' + str(epoch))
