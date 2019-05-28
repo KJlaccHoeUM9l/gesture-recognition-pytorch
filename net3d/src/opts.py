@@ -14,6 +14,11 @@ def parse_opts():
         type=str,
         help='Directory path of Videos')
     parser.add_argument(
+        '--annotation_directory',
+        default='annotation',
+        type=str,
+        help='Annotation directory path')
+    parser.add_argument(
         '--annotation_path',
         default='UAVGesture_2.json',
         type=str,
@@ -23,6 +28,11 @@ def parse_opts():
         default=False,
         type=bool,
         help='If true, no cross validation will be performed')
+    parser.add_argument(
+            '--frequence_cross_validation',
+            default=1,
+            type=int,
+            help='Frequence of switching between data loaders')
     parser.add_argument(
         '--result_path',
         default='results',
@@ -80,7 +90,7 @@ def parse_opts():
         'Initial learning rate (divided by 10 while training by lr scheduler)')
     parser.add_argument(
             '--frequence_regulate_lr',
-            default=25,
+            default=15,
             type=int,
             help='Regulate lr every (value) epoch')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
@@ -118,7 +128,7 @@ def parse_opts():
         '--batch_size', default=4, type=int, help='Batch Size')
     parser.add_argument(
         '--n_epochs',
-        default=10,
+        default=50,
         type=int,
         help='Number of total epochs to run')
     parser.add_argument(
@@ -164,7 +174,7 @@ def parse_opts():
         help='(resnet | preresnet | wideresnet | resnext)')
     parser.add_argument(
         '--model_depth',
-        default=50,
+        default=10,
         type=int,
         help='Depth of resnet (10 | 18 | 34 | 50)')
     parser.add_argument(
@@ -179,8 +189,6 @@ def parse_opts():
         default=32,
         type=int,
         help='ResNeXt cardinality')
-    parser.add_argument(
-        '--manual_seed', default=1, type=int, help='Manually set random seed')
 
     args = parser.parse_args()
 
