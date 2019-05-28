@@ -5,7 +5,7 @@ from net3d.src.models import resnet, pre_act_resnet, wide_resnet, resnext
 
 
 def generate_model(opt):
-    assert opt.model in ['resnet', 'preresnet', 'wideresnet', 'resnext']
+    assert opt.model in ['resnet', 'preresnet', 'wideresnet', 'resnext', 'c3d']
 
     if opt.model == 'resnet':
         assert opt.model_depth in [10, 18, 34, 50]
