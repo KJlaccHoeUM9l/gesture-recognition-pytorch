@@ -153,7 +153,7 @@ def parse_opts():
         help='Number of threads for multi-thread loading')
     parser.add_argument(
         '--checkpoint',
-        default=10,
+        default=20,
         type=int,
         help='Trained model is saved at every this epochs.')
     parser.add_argument(
@@ -174,7 +174,7 @@ def parse_opts():
         help='(resnet | preresnet | wideresnet | resnext)')
     parser.add_argument(
         '--model_depth',
-        default=10,
+        default=34,
         type=int,
         help='Depth of resnet (10 | 18 | 34 | 50)')
     parser.add_argument(
