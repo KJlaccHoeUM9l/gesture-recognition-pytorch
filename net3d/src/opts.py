@@ -69,10 +69,15 @@ def parse_opts():
     )
     parser.add_argument(
         '--learning_rate',
-        default=0.1,
+        default=0.01,
         type=float,
         help=
         'Initial learning rate (divided by 10 while training by lr scheduler)')
+    parser.add_argument(
+            '--frequence_regulate_lr',
+            default=7,
+            type=int,
+            help='Regulate lr every (value) epoch')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
     parser.add_argument(
         '--dampening', default=0.9, type=float, help='dampening of SGD')
@@ -105,10 +110,10 @@ def parse_opts():
         help='Patience of LR scheduler. See documentation of ReduceLROnPlateau.'
     )
     parser.add_argument(
-        '--batch_size', default=8, type=int, help='Batch Size')
+        '--batch_size', default=4, type=int, help='Batch Size')
     parser.add_argument(
         '--n_epochs',
-        default=2,
+        default=20,
         type=int,
         help='Number of total epochs to run')
     parser.add_argument(

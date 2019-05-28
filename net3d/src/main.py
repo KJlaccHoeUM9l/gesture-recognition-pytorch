@@ -19,7 +19,7 @@ from net3d.src.dataset import get_training_set, get_validation_set
 from net3d.src.utils import Logger
 from net3d.src.train import train_epoch
 from net3d.src.validation import val_epoch
-from net3d.src.utils import save_pictures, get_prefix, AverageMeter
+from net3d.src.utils import save_pictures, get_prefix, AverageMeter, regulate_learning_rate
 
 
 def main():
@@ -33,7 +33,6 @@ def main():
                                 get_prefix() + '_{}{}_{}_epochs'.format(opt.model, opt.model_depth, opt.n_epochs))
         os.mkdir(dir_name)
         opt.result_path = os.path.join(opt.result_path, dir_name)
-
 
     opt.scales = [opt.initial_scale]
     for epoch in range(1, opt.n_scales):
@@ -95,7 +94,7 @@ def main():
                           dampening=opt.dampening,
                           weight_decay=opt.weight_decay)
 
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=opt.lr_patience)
+    #scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=opt.lr_patience)
 
     # ***************************** VALIDATION CONFIGURATIONS *********************************
     spatial_transform = Compose([Scale(opt.sample_size),
@@ -120,10 +119,11 @@ def main():
         epoch_start_time = time.time()
         print('Epoch #' + str(epoch))
 
+        optimizer = regulate_learning_rate(optimizer, epoch, opt.frequence_regulate_lr)
         train_loss, train_acc = train_epoch(epoch, train_loader, model, criterion, optimizer, opt,
                                             train_logger, train_batch_logger)
-        validation_acc = val_epoch(epoch, val_loader, model, criterion, opt,
-                                   val_logger)
+        validation_acc = val_epoch(epoch, val_loader, model, criterion, opt, val_logger)
+
         train_loss_list.append(train_loss)
         train_acc_list.append(train_acc)
         valid_acc_list.append(validation_acc)
