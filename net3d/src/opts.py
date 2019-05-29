@@ -171,12 +171,12 @@ def parse_opts():
         '--model',
         #default='resnet',
         #default='lstm_alexnet',
-        default='lstm_resnet18',
+        default='lstm_resnet',
         type=str,
-        help='(resnet | preresnet | wideresnet | resnext)')
+        help='(resnet | preresnet | wideresnet | resnext | lstm_resnet | lstm_alexnet)')
     parser.add_argument(
         '--model_depth',
-        default=10,
+        default=34,
         type=int,
         help='Depth of resnet (10 | 18 | 34 | 50)')
     parser.add_argument(
