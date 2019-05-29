@@ -25,7 +25,7 @@ def parse_opts():
         help='Annotation file path')
     parser.add_argument(
         '--no_cross_validation',
-        default=True,
+        default=False,
         type=bool,
         help='If true, no cross validation will be performed')
     parser.add_argument(
@@ -90,7 +90,7 @@ def parse_opts():
         'Initial learning rate (divided by 10 while training by lr scheduler)')
     parser.add_argument(
             '--frequence_regulate_lr',
-            default=15,
+            default=11,
             type=int,
             help='Regulate lr every (value) epoch')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
@@ -128,7 +128,7 @@ def parse_opts():
         '--batch_size', default=4, type=int, help='Batch Size')
     parser.add_argument(
         '--n_epochs',
-        default=50,
+        default=20,
         type=int,
         help='Number of total epochs to run')
     parser.add_argument(
@@ -169,14 +169,12 @@ def parse_opts():
         'If 1, range of inputs is [0-255]. If 255, range of inputs is [0-1].')
     parser.add_argument(
         '--model',
-        #default='resnet',
-        #default='lstm_alexnet',
         default='lstm_resnet',
         type=str,
         help='(resnet | preresnet | wideresnet | resnext | lstm_resnet | lstm_alexnet)')
     parser.add_argument(
         '--model_depth',
-        default=34,
+        default=18,
         type=int,
         help='Depth of resnet (10 | 18 | 34 | 50)')
     parser.add_argument(

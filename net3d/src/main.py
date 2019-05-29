@@ -159,18 +159,16 @@ def main():
         optimizer = regulate_learning_rate(optimizer, epoch, opt.frequence_regulate_lr)
 
         train_loader = train_loader_list[current_train_data]
-        # if cross validation
         if not opt.no_cross_validation and epoch % opt.frequence_cross_validation == 0:
-            print('\tSwitch training data')
+            print('\t##### Cross-validation: switch training data #####')
             current_train_data = (current_train_data + 1) % len(train_loader_list)
             train_loader = train_loader_list[current_train_data]
         train_loss, train_acc = train_epoch(epoch, train_loader, model, criterion, optimizer, opt,
                                             train_logger, train_batch_logger)
 
         val_loader = val_loader_list[current_valid_data]
-        # if cross validation
         if not opt.no_cross_validation and epoch % opt.frequence_cross_validation == 0:
-            print('\tSwitch validation data')
+            print('\t##### Cross-validation: switch validation data #####')
             current_valid_data = (current_valid_data + 1) % len(val_loader_list)
             val_loader = val_loader_list[current_valid_data]
         validation_acc = val_epoch(epoch, val_loader, model, criterion, opt, val_logger)
