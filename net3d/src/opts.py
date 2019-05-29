@@ -25,7 +25,7 @@ def parse_opts():
         help='Annotation file path')
     parser.add_argument(
         '--no_cross_validation',
-        default=False,
+        default=True,
         type=bool,
         help='If true, no cross validation will be performed')
     parser.add_argument(
@@ -169,12 +169,13 @@ def parse_opts():
         'If 1, range of inputs is [0-255]. If 255, range of inputs is [0-1].')
     parser.add_argument(
         '--model',
-        default='resnet',
+        #default='resnet',
+        default='lstm_alexnet',
         type=str,
         help='(resnet | preresnet | wideresnet | resnext)')
     parser.add_argument(
         '--model_depth',
-        default=34,
+        default=10,
         type=int,
         help='Depth of resnet (10 | 18 | 34 | 50)')
     parser.add_argument(

@@ -1,11 +1,11 @@
 import torch
 from torch import nn
 
-from net3d.src.models import resnet, pre_act_resnet, wide_resnet, resnext
+from net3d.src.models import resnet, pre_act_resnet, wide_resnet, resnext, lstm_resnet18, lstm_alexnet
 
 
 def generate_model(opt):
-    assert opt.model in ['resnet', 'preresnet', 'wideresnet', 'resnext', 'c3d']
+    assert opt.model in ['resnet', 'preresnet', 'wideresnet', 'resnext', 'lstm_resnet18', 'lstm_alexnet']
 
     if opt.model == 'resnet':
         assert opt.model_depth in [10, 18, 34, 50]
@@ -76,6 +76,18 @@ def generate_model(opt):
             model = pre_act_resnet.resnet50(
                 num_classes=opt.n_classes,
                 shortcut_type=opt.resnet_shortcut,
+                sample_size=opt.sample_size,
+                sample_duration=opt.sample_duration)
+
+    elif opt.model == 'lstm_resnet18':
+        model = lstm_resnet18.lstm_resnet18(
+                num_classes=opt.n_classes,
+                sample_size=opt.sample_size,
+                sample_duration=opt.sample_duration)
+
+    elif opt.model == 'lstm_alexnet':
+        model = lstm_alexnet.lstm_alexnet(
+                num_classes=opt.n_classes,
                 sample_size=opt.sample_size,
                 sample_duration=opt.sample_duration)
 
