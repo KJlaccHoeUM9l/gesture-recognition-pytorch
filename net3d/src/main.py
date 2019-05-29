@@ -74,7 +74,8 @@ def main():
     # Пространственное преобразование
     spatial_transform = Compose([crop_method,
                                  RandomHorizontalFlip(),
-                                 ToTensor(opt.norm_value), norm_method])
+                                 ToTensor(opt.norm_value),
+                                 norm_method])
     # Временное преобразование
     temporal_transform = TemporalRandomCrop(opt.sample_duration)
     # Целевое преобразование
@@ -117,7 +118,8 @@ def main():
     # ***************************** VALIDATION CONFIGURATIONS *********************************
     spatial_transform = Compose([Scale(opt.sample_size),
                                  CenterCrop(opt.sample_size),
-                                 ToTensor(opt.norm_value), norm_method])
+                                 ToTensor(opt.norm_value),
+                                 norm_method])
     temporal_transform = LoopPadding(opt.sample_duration)
     target_transform = ClassLabel()
 

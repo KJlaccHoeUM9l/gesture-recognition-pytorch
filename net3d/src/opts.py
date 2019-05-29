@@ -163,18 +163,18 @@ def parse_opts():
     parser.set_defaults(no_hflip=False)
     parser.add_argument(
         '--norm_value',
-        default=1,
+        default=255,
         type=int,
         help=
         'If 1, range of inputs is [0-255]. If 255, range of inputs is [0-1].')
     parser.add_argument(
         '--model',
-        default='lstm_resnet',
+        default='resnet',
         type=str,
         help='(resnet | preresnet | wideresnet | resnext | lstm_resnet | lstm_alexnet)')
     parser.add_argument(
         '--model_depth',
-        default=18,
+        default=10,
         type=int,
         help='Depth of resnet (10 | 18 | 34 | 50)')
     parser.add_argument(
@@ -189,6 +189,11 @@ def parse_opts():
         default=32,
         type=int,
         help='ResNeXt cardinality')
+    parser.add_argument(
+            '--trained_model_path',
+            default='C:\\Users\\пк\\Desktop\\top results\\0031_resnet10_100_epochs_cross_validation\\save_100.pth',
+            type=str,
+            help='Path to the trained model for test')
 
     args = parser.parse_args()
 
