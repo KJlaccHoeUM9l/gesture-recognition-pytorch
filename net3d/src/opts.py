@@ -170,7 +170,8 @@ def parse_opts():
     parser.add_argument(
         '--model',
         #default='resnet',
-        default='lstm_alexnet',
+        #default='lstm_alexnet',
+        default='lstm_resnet18',
         type=str,
         help='(resnet | preresnet | wideresnet | resnext)')
     parser.add_argument(

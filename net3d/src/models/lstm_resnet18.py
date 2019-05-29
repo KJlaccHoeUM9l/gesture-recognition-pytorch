@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torchvision.models as models
-import math
 
 
 class LSTM_ResNet18(nn.Module):
@@ -14,6 +13,7 @@ class LSTM_ResNet18(nn.Module):
                  num_lstm_layers=1,
                  hidden_size=512):
         super(LSTM_ResNet18, self).__init__()
+        self.sample_duration = sample_duration
         self.hidden_size = hidden_size
         self.num_classes = num_classes
         self.fc_size = fc_size
@@ -23,10 +23,6 @@ class LSTM_ResNet18(nn.Module):
         for i, param in enumerate(self.features.parameters()):
             param.requires_grad = False
 
-        # last_duration = int(math.floor(sample_duration / 16))
-        # last_size = int(math.floor(sample_size / 32))
-        # fc_size = 512 * last_duration * last_size * last_size
-        # self.fc_size = fc_size
         self.fc_pre = nn.Sequential(nn.Linear(512, fc_size), nn.Dropout())
 
         self.rnn = nn.LSTM(input_size=fc_size,
@@ -35,28 +31,38 @@ class LSTM_ResNet18(nn.Module):
                            batch_first=True)
         self.fc = nn.Linear(hidden_size, num_classes)
 
-    def forward(self, inputs, hidden=None):
-        inputs = inputs[0][0]
-        print(inputs)
-        length = len(inputs)
-        print('Len: ' + str(length))
-        fs = torch.zeros(length, self.rnn.input_size)
-        for frame in inputs:
-            f = self.features(frame)
-        # fs = Variable(torch.zeros(length, self.rnn.input_size))
-        # #fs = torch.zeros(length, self.rnn.input_size)
-        # for i in range(length):
-        #     f = self.features(inputs[i].unsqueeze(0))
-        #     #f = self.features(inputs[i])
-        #     f = f.view(f.size(0), -1)
-        #     f = self.fc_pre(f)
-        #     fs[i] = f
-        # fs = fs.unsqueeze(0)
+    def forward(self, batch):
+        clip_quantities = len(batch)
+        out = Variable(torch.zeros(clip_quantities, self.num_classes)).cuda()
 
-        out = self.rnn(fs)
-        out = self.fc(out)
+        num_clip = 0
+        for clip in batch:
+            rnn_clip_input = torch.zeros(self.sample_duration, self.rnn.input_size)
+
+            # CNN part
+            num_frame = 0
+            new_clip = clip.transpose(0, 1)
+            for frame in new_clip:
+                cnn_frame_out = self.features(frame.unsqueeze(0))
+                cnn_frame_out = cnn_frame_out.reshape(1, -1)
+                cnn_frame_out = self.fc_pre(cnn_frame_out)
+
+                rnn_clip_input[num_frame] = cnn_frame_out
+                num_frame += 1
+
+            # RNN part
+            rnn_clip_input = rnn_clip_input.unsqueeze(0).cuda()
+            rnn_clip_out, _ = self.rnn(rnn_clip_input)
+            rnn_clip_out = self.fc(rnn_clip_out)
+
+            # Average for all frames in clip
+            rnn_clip_out = torch.mean(rnn_clip_out[0], dim=0).unsqueeze(0)
+
+            out[num_clip] = rnn_clip_out
+            num_clip += 1
 
         return out
+
 
 def lstm_resnet18(**kwargs):
     model = LSTM_ResNet18(**kwargs)
