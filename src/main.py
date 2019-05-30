@@ -5,21 +5,20 @@ import json
 import torch
 from torch import nn
 from torch import optim
-from torch.optim import lr_scheduler
 
-from net3d.src.opts import parse_opts
-from net3d.src.model import generate_model
-from net3d.src.mean import get_mean, get_std
-from net3d.src.spatial_transforms import (
+from src.opts import parse_opts
+from src.model import generate_model
+from src.mean import get_mean, get_std
+from src.spatial_transforms import (
      Compose, Normalize, Scale, CenterCrop, MultiScaleCornerCrop,
      RandomHorizontalFlip, ToTensor)
-from net3d.src.temporal_transforms import LoopPadding, TemporalRandomCrop
-from net3d.src.target_transforms import ClassLabel
-from net3d.src.dataset import get_training_set, get_validation_set
-from net3d.src.utils import Logger
-from net3d.src.train import train_epoch
-from net3d.src.validation import val_epoch
-from net3d.src.utils import save_pictures, get_prefix, AverageMeter, regulate_learning_rate
+from src.temporal_transforms import LoopPadding, TemporalRandomCrop
+from src.target_transforms import ClassLabel
+from src.dataset import get_training_set, get_validation_set
+from src.utils import Logger
+from src.train import train_epoch
+from src.validation import val_epoch
+from src.utils import save_pictures, get_prefix, AverageMeter, regulate_learning_rate
 
 
 def main():

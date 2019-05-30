@@ -1,8 +1,6 @@
-import torch
 from torch import nn
 
-from net3d.src.models import (resnet, pre_act_resnet, wide_resnet, resnext,
-                              lstm_resnet18, lstm_resnet34, lstm_alexnet)
+from src.models import resnet, resnext, lstm_alexnet, pre_act_resnet, lstm_resnet34, lstm_resnet18, wide_resnet
 
 
 def generate_model(opt):

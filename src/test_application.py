@@ -4,10 +4,10 @@ import torch
 import PIL.Image as Image
 
 from torchvision import transforms
-from net3d.src.opts import parse_opts
-from net3d.src.model import generate_model
-from net3d.src.mean import get_mean, get_std
-from net3d.src.spatial_transforms import Scale, CenterCrop
+from src.opts import parse_opts
+from src.model import generate_model
+from src.mean import get_mean, get_std
+from src.spatial_transforms import Scale, CenterCrop
 
 
 # UAV Gesture

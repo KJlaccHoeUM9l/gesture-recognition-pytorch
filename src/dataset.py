@@ -1,4 +1,4 @@
-from net3d.src.datasets.uav_gesture import UAVGesture
+from src.datasets.uav_gesture import UAVGesture
 
 
 def get_training_set(opt, spatial_transform, temporal_transform, target_transform):

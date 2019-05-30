@@ -3,7 +3,7 @@ from torch.autograd import Variable
 import time
 import os
 
-from net3d.src.utils import AverageMeter, calculate_accuracy
+from src.utils import AverageMeter, calculate_accuracy
 
 
 def train_epoch(epoch, data_loader, model, criterion, optimizer, opt, epoch_logger, batch_logger):
