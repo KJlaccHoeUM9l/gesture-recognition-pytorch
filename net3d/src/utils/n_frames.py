@@ -27,6 +27,6 @@ def class_process(dir_path, class_name):
 
 
 if __name__ == '__main__':
-    dir_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\test\\'
+    dir_path = 'C:\\neural-networks\\datasets\\UAVGestureFrames\\UAVGesture\\jpg\\'
     for class_name in os.listdir(dir_path):
         class_process(dir_path, class_name)

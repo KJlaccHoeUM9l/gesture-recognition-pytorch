@@ -7,7 +7,7 @@ import pandas as pd
 def convert_csv_to_dict(csv_dir_path, split_index):
     database = {}
     for filename in os.listdir(csv_dir_path):
-        if 'split{}'.format(split_index) not in filename:
+        if 'split_{}'.format(split_index) not in filename:
             continue
 
         data = pd.read_csv(os.path.join(csv_dir_path, filename),
@@ -30,7 +30,7 @@ def convert_csv_to_dict(csv_dir_path, split_index):
             key = keys[i]
             database[key] = {}
             database[key]['subset'] = subsets[i]
-            label = '_'.join(filename.split('_')[:-2])
+            label = '_'.join(filename.split('_')[:-3])
             database[key]['annotations'] = {'label': label}
 
     return database
@@ -39,7 +39,7 @@ def convert_csv_to_dict(csv_dir_path, split_index):
 def get_labels(csv_dir_path):
     labels = []
     for name in os.listdir(csv_dir_path):
-        labels.append('_'.join(name.split('_')[:-2]))
+        labels.append('_'.join(name.split('_')[:-3]))
     return sorted(list(set(labels)))
 
 
@@ -57,8 +57,9 @@ def convert_uav_gesture_csv_to_activitynet_json(csv_dir_path, split_index, dst_j
 
 
 if __name__ == '__main__':
-    csv_dir_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\annotation_test\\'
+    csv_dir_path = 'C:\\neural-networks\\datasets\\UAVGestureFrames\\data_splits_3\\'
 
-    for split_index in range(1, 4):
+    split_quantities = 3
+    for split_index in range(1, split_quantities + 1):
         dst_json_path = os.path.join(csv_dir_path, 'UAVGesture_{}.json'.format(split_index))
         convert_uav_gesture_csv_to_activitynet_json(csv_dir_path, split_index, dst_json_path)

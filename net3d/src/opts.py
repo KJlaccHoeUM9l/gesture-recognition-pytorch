@@ -5,17 +5,17 @@ def parse_opts():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--root_path',
-        default='C:\\neural-networks\\datasets\\UAV_activity_net\\',
+        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\',
         type=str,
         help='Root directory path of data')
     parser.add_argument(
         '--video_path',
-        default='C:\\neural-networks\\datasets\\UAV_activity_net\\UAVGesture\\jpg\\',
+        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\UAVGesture\\jpg\\',
         type=str,
         help='Directory path of Videos')
     parser.add_argument(
         '--annotation_directory',
-        default='annotation',
+        default='annotation_3',
         type=str,
         help='Annotation directory path')
     parser.add_argument(
@@ -25,7 +25,7 @@ def parse_opts():
         help='Annotation file path')
     parser.add_argument(
         '--no_cross_validation',
-        default=False,
+        default=True,
         type=bool,
         help='If true, no cross validation will be performed')
     parser.add_argument(
@@ -128,7 +128,7 @@ def parse_opts():
         '--batch_size', default=4, type=int, help='Batch Size')
     parser.add_argument(
         '--n_epochs',
-        default=20,
+        default=30,
         type=int,
         help='Number of total epochs to run')
     parser.add_argument(

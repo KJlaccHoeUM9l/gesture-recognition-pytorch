@@ -80,9 +80,9 @@ def main(opt):
 
 if __name__ == '__main__':
     opt = Object()
-    opt.video_root_directory_path = 'C:\\neural-networks\\datasets\\UAV_activity_net\\UAVGesture\\jpg\\'
-    opt.save_root_directory_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\annotation_test\\'
-    opt.split_quantities = 3
+    opt.video_root_directory_path = 'C:\\neural-networks\\datasets\\UAVGestureFrames\\UAVGesture\\jpg\\'
+    opt.save_root_directory_path = 'C:\\neural-networks\\datasets\\UAVGestureFrames\\data_splits_5\\'
+    opt.split_quantities = 5
 
     print('Start separate:')
     main(opt)

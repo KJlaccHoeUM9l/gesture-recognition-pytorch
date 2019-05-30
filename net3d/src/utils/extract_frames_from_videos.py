@@ -2,7 +2,7 @@ import cv2
 import os
 import time
 
-import net3d.src.utils.body_detection as bd
+import body_detection as bd
 
 
 class Object(object):
@@ -75,7 +75,7 @@ def main(opt):
 if __name__ == '__main__':
     opt = Object()
     opt.video_root_directory_path = 'C:\\neural-networks\\datasets\\UAVGesture\\'
-    opt.save_root_directory_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\test\\'
+    opt.save_root_directory_path = 'C:\\neural-networks\\datasets\\UAVGestureFrames\\UAVGesture\\jpg\\'
     opt.num_classes = 13
     opt.no_body_detection = False
     opt.final_size = 224
