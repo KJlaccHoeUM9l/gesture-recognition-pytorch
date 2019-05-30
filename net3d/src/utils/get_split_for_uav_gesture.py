@@ -2,85 +2,88 @@ import os
 import random
 
 
-def validVideos(countVideos, topBoundary):
+class Object(object):
+    pass
+
+
+def valid_videos(count_videos, top_boundary):
     nums = set()
 
-    while nums.__len__() != countVideos:
-        nums.add(random.randint(1, topBoundary))
+    while len(nums) != count_videos:
+        nums.add(random.randint(1, top_boundary))
 
     return nums
 
 
-def restValidation(availableVideos, size):
+def rest_validation(available_videos, size):
     nums = set()
 
-    minNum = min(availableVideos)
-    maxNum = max(availableVideos)
+    min_num = min(available_videos)
+    max_num = max(available_videos)
     while len(nums) != size:
-        try_i = random.randint(minNum, maxNum)
-        if availableVideos.__contains__(try_i):
+        try_i = random.randint(min_num, max_num)
+        if available_videos.__contains__(try_i):
             nums.add(try_i)
 
     return nums
 
 
-def getSplit(video_list, validation_set):
+def get_split(video_list, validation_set):
     split = []
 
     for video in video_list:
-        #name, index = video.split('_')
         words = video.split('_')
         index = words[len(words) - 1]
 
         if validation_set.__contains__(int(index)) is True:
-            split.append(video + ' 2')
+            split.append(video + ' 2')      # Validation
         else:
-            split.append(video + ' 1')
+            split.append(video + ' 1')      # Training
 
     return split
 
 
-def saveSplit(save_name, split):
+def save_split(save_name, split):
     with open(save_name, "w") as file:
         for line in split:
             file.write(line + '\n')
 
 
-def main(video_root_directory_path, save_root_directory_path):
-    folders = os.listdir(video_root_directory_path)
+def main(opt):
+    folders = os.listdir(opt.video_root_directory_path)
 
-    for videoFolder in folders:
-        videoList = os.listdir(video_root_directory_path + videoFolder + '/')
+    for video_folder in folders:
+        validation_list = []
+        split_list = []
 
-        # Разделение данных на обучение и валидацию
-        trainVideosCount = round(0.7 * videoList.__len__() + 0.5)  # 70%
-        validVideosCount = videoList.__len__() - trainVideosCount
+        video_list = os.listdir(os.path.join(opt.video_root_directory_path, video_folder))
+        valid_videos_count = round(len(video_list) / opt.split_quantities - 0.5)
+        available_videos_in_folder = set(range(1, len(video_list) + 1))
 
-        all_videos_in_folder = set(range(1, len(videoList) + 1))
+        # Start separation
+        first_validation_set = valid_videos(valid_videos_count, len(video_list))
+        validation_list.append(first_validation_set)
+        for i in range(1, opt.split_quantities):
+            available_videos_in_folder -= validation_list[i - 1]
+            validation_list.append(rest_validation(available_videos_in_folder, valid_videos_count))
 
-        validation1 = validVideos(validVideosCount, len(videoList))
-        validation2 = restValidation(all_videos_in_folder - validation1, validVideosCount)
-        validation3 = restValidation(all_videos_in_folder - validation1 - validation2, validVideosCount)
+        for validation_set in validation_list:
+            split_list.append(get_split(video_list, validation_set))
 
-        split1 = getSplit(videoList, validation1)
-        split2 = getSplit(videoList, validation2)
-        split3 = getSplit(videoList, validation3)
-
-        label = videoFolder.lower().split(' ')
-        label = '_'.join(label)
-        save_name_1 = save_root_directory_path + label + '_test_split1.txt'
-        save_name_2 = save_root_directory_path + label + '_test_split2.txt'
-        save_name_3 = save_root_directory_path + label + '_test_split3.txt'
-
-        saveSplit(save_name_1, split1)
-        saveSplit(save_name_2, split2)
-        saveSplit(save_name_3, split3)
+        num_split = 1
+        for split in split_list:
+            save_name = os.path.join(opt.save_root_directory_path,
+                                     '{}_test_split_{}.txt'.format(video_folder, num_split))
+            save_split(save_name, split)
+            num_split += 1
 
 
 if __name__ == '__main__':
-    video_root_directory_path = 'C:/neural-networks/datasets/UAV_activity_net/jpg/frames-short-70-cut-224-full/'
-    save_root_directory_path = 'C:/neural-networks/datasets/UAV_activity_net/annotation/'
+    opt = Object()
+    opt.video_root_directory_path = 'C:\\neural-networks\\datasets\\UAV_activity_net\\UAVGesture\\jpg\\'
+    opt.save_root_directory_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\annotation_test\\'
+    opt.split_quantities = 3
 
     print('Start separate:')
-    main(video_root_directory_path, save_root_directory_path)
+    main(opt)
     print('Separate ended success!')
