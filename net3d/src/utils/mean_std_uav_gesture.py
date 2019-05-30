@@ -66,7 +66,7 @@ def main(video_root_directory_path):
 
 
 if __name__ == '__main__':
-    video_root_directory_path = 'C:/neural-networks/datasets/UAV_activity_net/UAVGesture/jpg/'
+    video_root_directory_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\test\\'
 
     print('Start...')
     totalStart = time.time()

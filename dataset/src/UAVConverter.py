@@ -31,9 +31,6 @@ def extract_images(opt, video_path, save_path):
 
         success, image = video_cap.read()
         frame_count += 1
-        #
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
 
 
 def main(opt):
@@ -72,9 +69,6 @@ def main(opt):
         print('\tFolders: ' + str(num_current_class) + '/' + str(opt.num_classes))
         print('\tTime left: ' + str(round(class_avg_time * (opt.num_classes - num_current_class) / 60, 1)) + ' minutes')
 
-        if num_current_class == 3:
-            break
-
     print('*************************')
 
 
@@ -85,8 +79,8 @@ if __name__ == '__main__':
     opt.num_classes = 13
     opt.no_body_detection = False
     opt.final_size = 224
-    opt.frame_limit = 5
-    opt.video_limit = 2
+    opt.frame_limit = 75
+    opt.video_limit = 7
 
     print('Storyboard started...')
     total_start = time.time()
