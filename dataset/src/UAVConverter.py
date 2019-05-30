@@ -1,127 +1,95 @@
 import cv2
 import os
 import time
-import random
 
 import dataset.src.BodyDetection as bd
 
 
-def extractImages(video_path, save_path):
-    finalSize = 224
-    frameLimit = 70
+class Object(object):
+    pass
 
-    flagResize = True
+
+def extract_images(opt, video_path, save_path):
     k = 2
     new_w = int(1920 / k)
     new_h = int(1080 / k)
 
-    x, y, w, h = bd.getRectangle(video_path, frameLimit, flagResize, new_w, new_h)  ##
-    x, y, w, h = bd.getSquare(x, y, w, h)                                           ##
+    if not opt.no_body_detection:
+        x, y, w, h = bd.get_rectangle(video_path, opt.frame_limit, new_w, new_h)
+        x, y, w, h = bd.get_square(x, y, w, h)
 
-    videoCap = cv2.VideoCapture(video_path)
-    success, image = videoCap.read()
-    frameCount = 0
-    while success and frameCount < frameLimit:
-        if flagResize:
-            image = cv2.resize(image, (new_w, new_h))
-        image = bd.cut_image(image, x, y, w, h, finalSize)                          ##
-        #cv2.imshow('feed', image)
-        cv2.imwrite(save_path + 'img' + str(frameCount).zfill(6) + '.jpg', image)  # save frame as JPEG file
-        success, image = videoCap.read()
-        frameCount += 1
+    video_cap = cv2.VideoCapture(video_path)
+    success, image = video_cap.read()
+    frame_count = 0
+    while success and frame_count < opt.frame_limit:
+        image = cv2.resize(image, (new_w, new_h))
+        if not opt.no_body_detection:
+            image = bd.cut_image(image, x, y, w, h, opt.final_size)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        frame_save_path = os.path.join(save_path, 'img{}.jpg'.format(str(frame_count).zfill(6)))
+        cv2.imwrite(frame_save_path, image)
 
-        # fps = 25
-        # if (frameCount % fps == 0):
-        #     print(frameCount / fps, ' second')
-
-
-def numberOfVideos(root_directory_path):
-    totalFolders = 0
-    totalVideos = 0
-
-    folders = os.listdir(root_directory_path)
-    totalFolders += folders.__len__()
-
-    for videoFolder in folders:
-        videoList = os.listdir(root_directory_path + videoFolder + '/')
-        totalVideos += videoList.__len__()
-
-    return totalFolders, totalVideos
+        success, image = video_cap.read()
+        frame_count += 1
+        #
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
 
 
-def validVideos(countVideos, topBoundary):
-    nums = set()
+def main(opt):
+    num_current_class = 0
+    class_avg_time = 0
 
-    while nums.__len__() != countVideos:
-        nums.add(random.randint(1, topBoundary))
+    class_folders = os.listdir(opt.video_root_directory_path)
+    for class_folder in class_folders:
+        class_name = '_'.join(class_folder.lower().split(' '))
+        class_save_path = os.path.join(opt.save_root_directory_path, class_name)
+        if not os.path.exists(class_save_path):
+            os.makedirs(class_save_path)
 
-    return nums
+        current_class_video_path = os.path.join(opt.video_root_directory_path, class_folder)
+        current_video_list = os.listdir(current_class_video_path)
 
-
-def main(video_root_directory_path, save_root_directory_path):
-    # Для отображения прогресса нарезки
-    print('Storyboard started...')
-    totalFolders, totalVideos = numberOfVideos(video_root_directory_path)
-    currentFolder = 0
-    currentVideo = 0
-    avgTime = 0
-
-    # Начало нарезки
-    folders = os.listdir(video_root_directory_path)
-    for videoFolder in folders:
-        video_path = video_root_directory_path + videoFolder + '/'
-
-        videoList = os.listdir(video_root_directory_path + videoFolder + '/')
-
-        # Разделение данных на обучение и валидацию
-        trainVideosCount = round(0.8 * videoList.__len__() + 0.5)  # 80%
-        validVideosCount = videoList.__len__() - trainVideosCount
-        setValidVideos = validVideos(validVideosCount, videoList.__len__())
-
-        # Раскадровка каждого видеофайла в каждой папке
-        videoCount = 0
-        for video in videoList:
-            videoCount += 1
-
-            # Создание пути сохренения раскадровки
-            if (setValidVideos.__len__() == 0 or not setValidVideos.__contains__(videoCount)):
-                save_path = save_root_directory_path + 'train/' + videoFolder + '/'
-            else:
-                save_path = save_root_directory_path + 'valid/' + videoFolder + '/'
-
-            vp = video_path + video
-            sp = save_path + 'video_' + str(videoCount)
-            if not os.path.exists(sp):  # Если пути не существует создаем его
-                os.makedirs(sp)
+        num_video = 0
+        class_start = time.time()
+        for video in current_video_list:
+            video_source_path = os.path.join(current_class_video_path, video)
+            video_save_path = os.path.join(class_save_path, '{}_video_{}'.format(class_name, num_video + 1))
+            if not os.path.exists(video_save_path):
+                os.makedirs(video_save_path)
 
             # Раскадровка
-            start = time.time()
-            extractImages(vp, sp + '/')
-            currentTime = time.time() - start
+            extract_images(opt, video_source_path, video_save_path)
 
-            # Обновление данных для статистики
-            currentVideo += 1
-            avgTime = (avgTime + currentTime) / 2
+            num_video += 1
+            if num_video == opt.video_limit:
+                break
 
-        currentFolder += 1
+        class_avg_time = (class_avg_time + (time.time() - class_start)) / 2
+        num_current_class += 1
         print('*************************')
         print('Done:')
-        print('\tFolders: ' + str(currentFolder) + '/' + str(totalFolders))
-        print('\tVideos: ' + str(currentVideo) + '/' + str(totalVideos))
-        print('\tTime left: ' + str(round(avgTime * (totalVideos - currentVideo) / 60, 1)) + ' minutes')
+        print('\tFolders: ' + str(num_current_class) + '/' + str(opt.num_classes))
+        print('\tTime left: ' + str(round(class_avg_time * (opt.num_classes - num_current_class) / 60, 1)) + ' minutes')
+
+        if num_current_class == 3:
+            break
 
     print('*************************')
 
 
-
 if __name__ == '__main__':
-    video_root_directory_path = 'C:/neural-networks/datasets/UAVGesture/'
-    save_root_directory_path = 'C:/neural-networks/datasets/TestUAVGesture/frames-short-70-cut-224-full/'
+    opt = Object()
+    opt.video_root_directory_path = 'C:\\neural-networks\\datasets\\UAVGesture\\'
+    opt.save_root_directory_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\test\\'
+    opt.num_classes = 13
+    opt.no_body_detection = False
+    opt.final_size = 224
+    opt.frame_limit = 5
+    opt.video_limit = 2
 
-    totalStart = time.time()
-    main(video_root_directory_path, save_root_directory_path)
-    print('Total time: ' + str(round((time.time() - totalStart) / 60)) + ' minutes')
+    print('Storyboard started...')
+    total_start = time.time()
+    main(opt)
+    print('Total time: ' + str(round((time.time() - total_start) / 60)) + ' minutes')
     print('Storyboard ended success!')

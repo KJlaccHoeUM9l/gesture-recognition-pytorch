@@ -1,8 +1,7 @@
 import cv2
-import time
 
 
-def getRectangle(videoPath, maxFrames, flagResize=False, width=480, height=270):
+def get_rectangle(video_path, max_frames, width=480, height=270):
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
@@ -11,13 +10,12 @@ def getRectangle(videoPath, maxFrames, flagResize=False, width=480, height=270):
     avg_w = 0
     avg_h = 0
     total = 0
-    frameCount = 0
+    frame_count = 0
 
-    cap = cv2.VideoCapture(videoPath)
+    cap = cv2.VideoCapture(video_path)
     success, frame = cap.read()
-    while success and frameCount < maxFrames:
-        if flagResize:
-            frame = cv2.resize(frame, (width, height))
+    while success and frame_count < max_frames:
+        frame = cv2.resize(frame, (width, height))
 
         rectangle, _ = hog.detectMultiScale(frame, winStride=(8, 8), padding=(32, 32), scale=1.05)
         if len(rectangle) != 0:
@@ -28,7 +26,7 @@ def getRectangle(videoPath, maxFrames, flagResize=False, width=480, height=270):
             total += 1
 
         success, frame = cap.read()
-        frameCount += 1
+        frame_count += 1
 
     avg_x = int(avg_x / total)
     avg_y = int(avg_y / total)
@@ -37,49 +35,48 @@ def getRectangle(videoPath, maxFrames, flagResize=False, width=480, height=270):
 
     return avg_x, avg_y, avg_w, avg_h
 
-def getSquare(x, y, w, h):
-    largestEdge = max(w, h)
+
+def get_square(x, y, w, h):
+    largest_edge = max(w, h)
     shift = int(abs(w - h) / 2.0)
-    if largestEdge == w:
+    if largest_edge == w:
         y -= shift
-        h = largestEdge
+        h = largest_edge
     else:
         x -= shift
-        w = largestEdge
+        w = largest_edge
     return x, y, w, h
 
-def cut_image(img, x, y, w, h, newSize):
-    return cv2.resize(img[y:y+h, x:x+w], (newSize, newSize))
+
+def cut_image(img, x, y, w, h, new_size):
+    return cv2.resize(img[y:y+h, x:x+w], (new_size, new_size))
 
 
-if __name__ == '__main__':
-    maxFrames = 50
-    flagResize = True
-    videoPath = 'C:/neural-networks/datasets/UAVGesture/Slow Down/S6_slowDown_HD.mp4'
-    #videoPath = 'C:/Users/пк/Desktop/S12_allClear_HD.mp4'
+def demonstration():
+    video_path = 'C:/neural-networks/datasets/UAVGesture/Slow Down/S6_slowDown_HD.mp4'
+    max_frames = 50
 
-    totalStart = time.time()
+    x, y, w, h = get_rectangle(video_path, max_frames)
+    x, y, w, h = get_square(x, y, w, h)
+    frame_count = 0
 
-    x, y, w, h = getRectangle(videoPath, maxFrames, flagResize)
-    x, y, w, h = getSquare(x, y, w, h)
-    frameCount = 0
-
-    cap = cv2.VideoCapture(videoPath)
+    cap = cv2.VideoCapture(video_path)
     success, frame = cap.read()
-    while success and frameCount < maxFrames:
+    while success and frame_count < max_frames:
         frame = cv2.resize(frame, (480, 270))
 
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
-        #frame = cut_image(frame, x, y, w, h, 224)
         cv2.imshow('feed', frame)
 
         success, frame = cap.read()
-        frameCount += 1
+        frame_count += 1
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    print('Total time: ' + str(round((time.time() - totalStart))) + ' sec')
-
     cap.release()
     cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    demonstration()
