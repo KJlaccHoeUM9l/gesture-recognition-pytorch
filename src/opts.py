@@ -3,19 +3,15 @@ import argparse
 
 def parse_opts():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--root_path',
-        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\',
-        type=str,
-        help='Root directory path of data')
+
     parser.add_argument(
         '--video_path',
-        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\UAVGesture\\jpg\\',
+        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\ready_frames\\',
         type=str,
-        help='Directory path of Videos')
+        help='Directory path of frames from videos')
     parser.add_argument(
         '--annotation_directory',
-        default='annotation_3',
+        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\annotation_3\\',
         type=str,
         help='Annotation directory path')
     parser.add_argument(
@@ -23,6 +19,11 @@ def parse_opts():
         default='UAVGesture_2.json',
         type=str,
         help='Annotation file path')
+    parser.add_argument(
+            '--result_path',
+            default='C:\\neural-networks\\datasets\\UAVGestureFrames\\results\\',
+            type=str,
+            help='Result directory path')
     parser.add_argument(
         '--no_cross_validation',
         default=True,
@@ -33,11 +34,6 @@ def parse_opts():
             default=1,
             type=int,
             help='Frequence of switching between data loaders')
-    parser.add_argument(
-        '--result_path',
-        default='results',
-        type=str,
-        help='Result directory path')
     parser.add_argument(
         '--dataset',
         default='UAV',
@@ -128,7 +124,7 @@ def parse_opts():
         '--batch_size', default=4, type=int, help='Batch Size')
     parser.add_argument(
         '--n_epochs',
-        default=30,
+        default=2,
         type=int,
         help='Number of total epochs to run')
     parser.add_argument(

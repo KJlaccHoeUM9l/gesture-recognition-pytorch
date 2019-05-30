@@ -107,4 +107,3 @@ venv.bak/
 *.pth.tar
 *.png
 *pycache*
-*.txt

@@ -24,16 +24,13 @@ from src.utils import save_pictures, get_prefix, AverageMeter, regulate_learning
 def main():
     opt = parse_opts()
     # Path configurations
-    if opt.root_path != '':
-        opt.video_path = os.path.join(opt.root_path, opt.video_path)
-        opt.annotation_directory = os.path.join(opt.root_path, opt.annotation_directory)
-        opt.annotation_path = os.path.join(opt.annotation_directory, opt.annotation_path)
-
-        opt.result_path = os.path.join(opt.root_path, opt.result_path)
-        dir_name = os.path.join(opt.result_path,
-                                get_prefix() + '_{}{}_{}_epochs'.format(opt.model, opt.model_depth, opt.n_epochs))
-        os.mkdir(dir_name)
-        opt.result_path = os.path.join(opt.result_path, dir_name)
+    opt.annotation_path = os.path.join(opt.annotation_directory, opt.annotation_path)
+    save_result_dir_name = \
+        os.path.join(opt.result_path,
+                     get_prefix() + '_{}{}_{}_epochs'.format(opt.model, opt.model_depth, opt.n_epochs))
+    if not os.path.exists(save_result_dir_name):
+        os.mkdir(save_result_dir_name)
+    opt.result_path = os.path.join(opt.result_path, save_result_dir_name)
 
     # For data generator
     opt.scales = [opt.initial_scale]
@@ -150,9 +147,11 @@ def main():
     train_loss_list = []
     train_acc_list = []
     valid_acc_list = []
+    best_accuracy = 0
     current_train_data = 0
     current_valid_data = 0
     opt.frequence_cross_validation = round(opt.n_epochs / 3 + 0.5)
+
     for epoch in range(opt.begin_epoch, opt.n_epochs + 1):
         epoch_start_time = time.time()
         print('Epoch #' + str(epoch))
@@ -177,6 +176,16 @@ def main():
         train_loss_list.append(train_loss)
         train_acc_list.append(train_acc)
         valid_acc_list.append(validation_acc)
+
+        # Save model with best accuracy
+        if validation_acc > best_accuracy:
+            best_accuracy = validation_acc
+            save_file_path = os.path.join(opt.result_path, 'best_model.pth')
+            states = {'epoch': epoch + 1,
+                      'arch': opt.arch,
+                      'state_dict': model.state_dict(),
+                      'optimizer': optimizer.state_dict()}
+            torch.save(states, save_file_path)
 
         epoch_end_time = time.time() - epoch_start_time
         epoch_avg_time.update(epoch_end_time)
