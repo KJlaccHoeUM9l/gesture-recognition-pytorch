@@ -1,6 +1,5 @@
 from __future__ import print_function, division
 import os
-import sys
 import json
 import pandas as pd
 
@@ -44,9 +43,8 @@ def get_labels(csv_dir_path):
     return sorted(list(set(labels)))
 
 
-def convert_hmdb51_csv_to_activitynet_json(csv_dir_path, split_index, dst_json_path):
+def convert_uav_gesture_csv_to_activitynet_json(csv_dir_path, split_index, dst_json_path):
     labels = get_labels(csv_dir_path)
-    # print(labels)
     database = convert_csv_to_dict(csv_dir_path, split_index)
 
     dst_data = {}
@@ -59,11 +57,8 @@ def convert_hmdb51_csv_to_activitynet_json(csv_dir_path, split_index, dst_json_p
 
 
 if __name__ == '__main__':
-    # csv_dir_path = sys.argv[1]
-    # csv_dir_path = 'C:\\neural-networks\\datasets\\HMDB\\hmdb51_frames_1\\'
-    #csv_dir_path = 'C:\\neural-networks\\datasets\\HMDB\\annotation_1\\'
-    csv_dir_path = 'C:\\neural-networks\\datasets\\UAV_activity_net\\annotation\\'
+    csv_dir_path = 'C:\\neural-networks\\datasets\\TestUAVGesture\\annotation_test\\'
 
     for split_index in range(1, 4):
         dst_json_path = os.path.join(csv_dir_path, 'UAVGesture_{}.json'.format(split_index))
-        convert_hmdb51_csv_to_activitynet_json(csv_dir_path, split_index, dst_json_path)
+        convert_uav_gesture_csv_to_activitynet_json(csv_dir_path, split_index, dst_json_path)

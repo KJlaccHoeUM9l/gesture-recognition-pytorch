@@ -2,7 +2,7 @@ import cv2
 import os
 import time
 
-import net3d.src.utils.BodyDetection as bd
+import net3d.src.utils.body_detection as bd
 
 
 class Object(object):
