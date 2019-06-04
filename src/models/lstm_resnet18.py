@@ -58,6 +58,9 @@ class LSTM_ResNet18(nn.Module):
             # Average for all frames in clip
             rnn_clip_out = torch.mean(rnn_clip_out[0], dim=0).unsqueeze(0)
 
+            # Predict on last frame
+            # rnn_clip_out = rnn_clip_out[0][len(rnn_clip_out[0])-1].unsqueeze(0)
+
             out[num_clip] = rnn_clip_out
             num_clip += 1
 

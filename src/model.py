@@ -57,9 +57,15 @@ def generate_model(opt):
                 sample_duration=opt.sample_duration)
 
     elif opt.model == 'preresnet':
-        assert opt.model_depth in [18, 34, 50]
+        assert opt.model_depth in [10, 18, 34, 50]
 
-        if opt.model_depth == 18:
+        if opt.model_depth == 10:
+            model = pre_act_resnet.resnet10(
+                num_classes=opt.n_classes,
+                shortcut_type=opt.resnet_shortcut,
+                sample_size=opt.sample_size,
+                sample_duration=opt.sample_duration)
+        elif opt.model_depth == 18:
             model = pre_act_resnet.resnet18(
                 num_classes=opt.n_classes,
                 shortcut_type=opt.resnet_shortcut,

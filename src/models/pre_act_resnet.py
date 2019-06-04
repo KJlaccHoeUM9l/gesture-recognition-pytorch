@@ -5,7 +5,7 @@ from torch.autograd import Variable
 import math
 from functools import partial
 
-__all__ = ['PreActivationResNet', 'resnet18', 'resnet34', 'resnet50']
+__all__ = ['PreActivationResNet', 'resnet10', 'resnet18', 'resnet34', 'resnet50']
 
 
 def conv3x3x3(in_planes, out_planes, stride=1):
@@ -186,6 +186,13 @@ class PreActivationResNet(nn.Module):
         x = self.fc(x)
 
         return x
+
+
+def resnet10(**kwargs):
+    """Constructs a ResNet-10 model.
+    """
+    model = PreActivationResNet(PreActivationBasicBlock, [1, 1, 1, 1], **kwargs)
+    return model
 
 
 def resnet18(**kwargs):

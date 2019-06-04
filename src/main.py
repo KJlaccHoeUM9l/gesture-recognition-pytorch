@@ -5,20 +5,21 @@ import json
 import torch
 from torch import nn
 from torch import optim
+from torch.optim import lr_scheduler
 
-from src.opts import parse_opts
-from src.model import generate_model
-from src.mean import get_mean, get_std
-from src.spatial_transforms import (
+from opts import parse_opts
+from model import generate_model
+from mean import get_mean, get_std
+from spatial_transforms import (
      Compose, Normalize, Scale, CenterCrop, MultiScaleCornerCrop,
      RandomHorizontalFlip, ToTensor)
-from src.temporal_transforms import LoopPadding, TemporalRandomCrop
-from src.target_transforms import ClassLabel
-from src.dataset import get_training_set, get_validation_set
-from src.utils import Logger
-from src.train import train_epoch
-from src.validation import val_epoch
-from src.utils import save_pictures, get_prefix, AverageMeter, regulate_learning_rate
+from temporal_transforms import LoopPadding, TemporalRandomCrop
+from target_transforms import ClassLabel
+from dataset import get_training_set, get_validation_set
+from utils import Logger
+from train import train_epoch
+from validation import val_epoch
+from utils import save_pictures, get_prefix, AverageMeter, regulate_learning_rate
 
 
 def main():
@@ -69,7 +70,7 @@ def main():
 
     # Пространственное преобразование
     spatial_transform = Compose([crop_method,
-                                 RandomHorizontalFlip(),
+                                 #RandomHorizontalFlip(),
                                  ToTensor(opt.norm_value),
                                  norm_method])
     # Временное преобразование
@@ -109,7 +110,7 @@ def main():
                           dampening=opt.dampening,
                           weight_decay=opt.weight_decay)
 
-    #scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=opt.lr_patience)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=opt.lr_patience)
 
     # ***************************** VALIDATION CONFIGURATIONS *********************************
     spatial_transform = Compose([Scale(opt.sample_size),
@@ -150,13 +151,13 @@ def main():
     best_accuracy = 0
     current_train_data = 0
     current_valid_data = 0
-    opt.frequence_cross_validation = round(opt.n_epochs / 3 + 0.5)
+    opt.frequence_cross_validation = round(opt.n_epochs / opt.n_cross_validation_sets + 0.5)
 
     for epoch in range(opt.begin_epoch, opt.n_epochs + 1):
         epoch_start_time = time.time()
         print('Epoch #' + str(epoch))
 
-        optimizer = regulate_learning_rate(optimizer, epoch, opt.frequence_regulate_lr)
+        # optimizer = regulate_learning_rate(optimizer, epoch, opt.frequence_regulate_lr)
 
         train_loader = train_loader_list[current_train_data]
         if not opt.no_cross_validation and epoch % opt.frequence_cross_validation == 0:

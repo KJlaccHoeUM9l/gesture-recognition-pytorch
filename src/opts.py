@@ -11,9 +11,14 @@ def parse_opts():
         help='Directory path of frames from videos')
     parser.add_argument(
         '--annotation_directory',
-        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\annotation_3\\',
+        default='C:\\neural-networks\\datasets\\UAVGestureFrames\\annotation_5\\',
         type=str,
         help='Annotation directory path')
+    parser.add_argument(
+            '--n_cross_validation_sets',
+            default=5,
+            type=int,
+            help='Quantity of sets for cross validation')
     parser.add_argument(
         '--annotation_path',
         default='UAVGesture_2.json',
@@ -26,7 +31,7 @@ def parse_opts():
             help='Result directory path')
     parser.add_argument(
         '--no_cross_validation',
-        default=True,
+        default=False,
         type=bool,
         help='If true, no cross validation will be performed')
     parser.add_argument(
@@ -86,7 +91,7 @@ def parse_opts():
         'Initial learning rate (divided by 10 while training by lr scheduler)')
     parser.add_argument(
             '--frequence_regulate_lr',
-            default=11,
+            default=26,
             type=int,
             help='Regulate lr every (value) epoch')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
@@ -124,7 +129,7 @@ def parse_opts():
         '--batch_size', default=4, type=int, help='Batch Size')
     parser.add_argument(
         '--n_epochs',
-        default=2,
+        default=50,
         type=int,
         help='Number of total epochs to run')
     parser.add_argument(
@@ -187,9 +192,16 @@ def parse_opts():
         help='ResNeXt cardinality')
     parser.add_argument(
             '--trained_model_path',
-            default='C:\\Users\\пк\\Desktop\\top results\\0031_resnet10_100_epochs_cross_validation\\save_100.pth',
+            default='C:\\neural-networks\\datasets\\UAVGestureFrames\\results\\0168_resnet10_250_epochs_85_acc\\save_200.pth',
             type=str,
             help='Path to the trained model for test')
+    parser.add_argument(
+            '--test_video_path',
+            #default='C:\\neural-networks\\datasets\\UAVGesture\\All Clear\\S5_allClear_HD.mp4',
+            default='C:\\neural-networks\\datasets\\UAVGesture\\Move To Right\\S13_moveToRight_HD.mp4',
+            #default=None,
+            type=str,
+            help='Path to the test video (if None, then test from web-camera)')
 
     args = parser.parse_args()
 

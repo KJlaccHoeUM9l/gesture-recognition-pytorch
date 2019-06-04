@@ -57,7 +57,11 @@ def main():
 
     # Read frames from web-camera
     frames = []
-    cap = cv2.VideoCapture(0)
+    if opt.test_video_path is not None:
+        cap = cv2.VideoCapture(opt.test_video_path)
+    else:
+        cap = cv2.VideoCapture(0)
+
     success, raw_frame = cap.read()
     while success:
         # Our operations on the frame come here
